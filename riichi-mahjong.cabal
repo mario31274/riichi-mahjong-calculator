@@ -22,7 +22,9 @@ extra-source-files:
     README.md
 
 library
-    exposed-modules:  MyLib
+    exposed-modules:  Tiles,
+                      Melds,
+                      Wall
 
     -- Modules included in this library but not exported.
     -- other-modules:
@@ -54,7 +56,8 @@ test-suite riichi-mahjong-test
     hs-source-dirs:   test
     main-is:          Spec.hs
     build-depends:
-        base ^>=4.17.2.0,QuickCheck,
+        base ^>=4.17.2.0,
+        QuickCheck,
         riichi-mahjong,
         hspec,
         hspec-expectations,
