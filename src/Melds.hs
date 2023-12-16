@@ -1,44 +1,74 @@
 module Melds where
 
+import GHC.Event.Windows (Manager)
+import System.Console.GetOpt (ArgDescr (NoArg))
 import Tiles
 import Wall
 
 type Opened = Bool
 
-data Meld = Single Tile | Pair Tile Tile Opened | Triplet Tile Tile Tile Opened | Quad Tile Tile Tile Tile Opened
+data Pair = Pair Tile Tile
   deriving (Show, Ord, Eq)
 
-triplet :: Tile -> Tile -> Tile -> Opened -> Meld
-triplet = Triplet
+data Meld = Triplet Tile Tile Tile Opened | Quad Tile Tile Tile Tile Opened
+  deriving (Show, Ord, Eq)
 
-data SequenceMeld = SequenceMeld Tile Tile Tile
-  deriving (Show, Eq)
+pairMeld :: Tile -> Tile -> Maybe Pair
+pairMeld t1 t2
+  | isAllSame [t1, t2] = Just (Pair t1 t2)
+  | otherwise = Nothing
 
-sequenceMeld :: Tile -> Tile -> Tile -> Opened -> Maybe Meld
-sequenceMeld t1 t2 t3 opened
+sequentialMeld :: Tile -> Tile -> Tile -> Opened -> Maybe Meld
+sequentialMeld t1 t2 t3 opened
   | isSequence [t1, t2, t3] = Just (Triplet t1 t2 t3 opened)
   | otherwise = Nothing
 
-data TripletMeld = TripletMeld Tile Tile Tile
-  deriving (Show, Eq)
-
 tripletMeld :: Tile -> Tile -> Tile -> Opened -> Maybe Meld
 tripletMeld t1 t2 t3 opened
-  | isTriple [t1, t2, t3] = Just (Triplet t1 t2 t3 opened)
+  | isAllSame [t1, t2, t3] = Just (Triplet t1 t2 t3 opened)
   | otherwise = Nothing
 
--- pairMeld :: (Tile, Tile) -> Maybe Meld
--- pairMeld pair = case pair of
---   (t, t) -> Nothing
+quadMeld :: Tile -> Tile -> Tile -> Tile -> Opened -> Maybe Meld
+quadMeld t1 t2 t3 t4 opened
+  | isAllSame [t1, t2, t3, t4] = Just (Quad t1 t2 t3 t4 opened)
+  | otherwise = Nothing
 
--- chiMeld :: (Tile, Tile, Tile) -> Opened -> Meld
--- chiMeld t1 t2 t3 = Triplet (t1, t2, t3)
+pluck :: (Eq a) => a -> [a] -> Maybe (a, [a])
+pluck x [] = Nothing
+pluck x (y : ys)
+  | x == y = Just (y, ys)
+  | otherwise = case pluck x ys of
+      Nothing -> Nothing
+      Just (x', ys') -> Just (x', y : ys')
 
-ponMeld :: Tile -> Tile -> Tile -> Opened -> Meld
-ponMeld = Triplet
+getSeqMeld :: Hand -> Maybe Meld
+getSeqMeld (t : ts) = undefined
 
-kanMeld :: Tile -> Tile -> Tile -> Tile -> Opened -> Meld
-kanMeld = Quad
+-- Closed sequential meld
+seqMeld :: Tile -> Tile -> Tile -> Maybe Meld
+seqMeld t1 t2 t3 = sequentialMeld t1 t2 t3 False
+
+-- Closed triplet meld
+triMeld :: Tile -> Maybe Meld
+triMeld t1 = tripletMeld t1 t1 t1 False
+
+-- --Unmodifiable melds--
+--
+-- Open sequential meld
+chiMeld :: Tile -> Tile -> Tile -> Maybe Meld
+chiMeld t1 t2 t3 = sequentialMeld t1 t2 t3 True
+
+-- Open triplet meld
+ponMeld :: Tile -> Tile -> Tile -> Maybe Meld
+ponMeld t1 t2 t3 = tripletMeld t1 t2 t3 True
+
+-- Open quadruple meld
+openKanMeld :: Tile -> Tile -> Tile -> Tile -> Maybe Meld
+openKanMeld t1 t2 t3 t4 = quadMeld t1 t2 t3 t4 True
+
+-- Closed quadruple meld
+closedKanMeld :: Tile -> Tile -> Tile -> Tile -> Maybe Meld
+closedKanMeld t1 t2 t3 t4 = quadMeld t1 t2 t3 t4 False
 
 -- Function to check if a list of tiles is a sequence
 isSequence :: [Tile] -> Bool
@@ -46,14 +76,14 @@ isSequence [Numeric n1 s1, Numeric n2 s2, Numeric n3 s3] =
   n2 == n1 + 1 && n3 == n2 + 1 && all (== s1) [s2, s3]
 isSequence _ = False
 
--- Function to check if a list of tiles is a triple
-isTriple :: [Tile] -> Bool
-isTriple [t1, t2, t3] = t1 == t2 && t2 == t3
-isTriple _ = False
+-- Function to check if a list of tiles is a triple or quad
+isAllSame :: (Eq a) => [a] -> Bool
+isAllSame (x : xs) = all (== x) xs
+isAllSame _ = False
 
 -- Function to check if a hand has a pair
 hasPair :: Hand -> Bool
-hasPair tiles = any (\(x, y) -> x == y) $ pairs tiles
+hasPair tiles = any (uncurry (==)) $ pairs tiles
   where
     pairs :: [a] -> [(a, a)]
     pairs [] = []
@@ -61,13 +91,13 @@ hasPair tiles = any (\(x, y) -> x == y) $ pairs tiles
     pairs (x : y : xs) = (x, y) : pairs xs
 
 -- Function to categorize a hand into sequences, triples, and a pair
--- categorizeHand :: Hand -> ([(Tile, Tile, Tile)], [(Tile, Tile, Tile)], [(Tile, Tile)])
--- categorizeHand hand =
---   (sequences, triples, pairs)
+-- categorizeWinningHand :: Hand -> ([Maybe Meld], [Maybe Meld], [Maybe Meld], [Maybe Meld])
+-- categorizeWinningHand hand =
+--   ([pairMeld], [sequentialMeld], [tripletMeld], [quadMeld])
 --   where
 --     sequences = filter isSequence (combinations 3 hand)
---     triples = filter isTriple (combinations 3 hand)
---     pairs = filter (uncurry (==)) (combinations 2 hand)
+--     triples = filter isAllSame (combinations 3 hand)
+--     pairs = filter isAllSame (combinations 2 hand)
 
 -- Function to generate combinations of a certain size
 combinations :: Int -> [a] -> [[a]]
@@ -75,5 +105,7 @@ combinations 0 _ = [[]]
 combinations _ [] = []
 combinations k (x : xs) = map (x :) (combinations (k - 1) xs) ++ combinations k xs
 
-tanyaoMeld :: SequenceMeld
-tanyaoMeld = undefined
+-- All simple
+isTanyaoMeld :: Meld -> Bool
+isTanyaoMeld (Triplet t1 t2 t3 _) = all isSimpleTile [t1, t2, t3] && isSequence [t1, t2, t3]
+isTanyaoMeld _ = False

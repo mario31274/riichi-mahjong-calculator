@@ -12,9 +12,6 @@ pin = Pin
 man = Man
 honor = Honor
 
--- data Honor = Wind | Dragon
---   deriving (Eq, Enum)
-
 data Wind = East | South | West | North
   deriving (Eq, Enum, Bounded, Ord)
 
@@ -23,6 +20,11 @@ data Dragon = White | Green | Red
 
 data Tile = Numeric Int Suit | Wind Wind Suit | Dragon Dragon Suit
   deriving (Eq, Ord)
+
+-- instance Enum Tile where
+--   fromEnum (Numeric n _) = n
+--   fromEnum a = fromEnum a
+--   toEnum n = (Numeric n _)
 
 numeric :: Int -> Suit -> Tile
 numeric n suit
@@ -37,10 +39,24 @@ dragon :: Dragon -> Tile
 dragon d = Dragon d Honor
 
 cycleNext :: Tile -> Tile
-cycleNext = undefined
+cycleNext t = case t of
+  Numeric n s
+    | n >= 1 || n <= 8 -> Numeric (n + 1) s
+    | otherwise -> Numeric 1 s
+  Wind w s -> Wind (succ w) s
+  Dragon d s -> Dragon (succ d) s
 
 next :: Tile -> Maybe Tile
-next = undefined
+next (Numeric n s)
+  | n >= 1 || n <= 8 = Just (Numeric (n + 1) s)
+  | otherwise = Nothing
+next _ = Nothing
+
+isSimpleTile :: Tile -> Bool
+isSimpleTile (Numeric n _)
+  | (n < 2) || (n > 8) = False
+  | otherwise = True
+isSimpleTile _ = False
 
 instance Show Suit where
   show suit = case suit of

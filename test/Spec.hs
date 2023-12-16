@@ -1,5 +1,6 @@
 {-# LANGUAGE BlockArguments #-}
 {-# LANGUAGE InstanceSigs #-}
+{-# LANGUAGE TypeSynonymInstances #-}
 
 -- module Spec (main) where
 
@@ -37,28 +38,32 @@ main = hspec do
         evaluate (numeric 1 Honor) `shouldThrow` anyException
     describe "Winds" do
       it "should be Honor tiles" do
-        property do
-          wind <- anyWind
-          return $ suitOf wind `shouldBe` Honor
+        property $ forAll anyWind $ \wind -> do
+          suitOf wind `shouldBe` Honor
     describe "Dragons" do
       it "should be Honor tiles" do
-        property do
-          dragon <- anyDragon
-          return $ suitOf dragon `shouldBe` Honor
+        property $ forAll anyDragon $ \dragon -> do
+          suitOf dragon `shouldBe` Honor
 
   context "1.2 Melds" do
-    describe "sequenceMeld" do
+    describe "sequentialMeld" do
       it "should be in sequence" do
         pendingWith "Add actual test here"
       it "should not allow melds like (9, 1, 2)" do
-        sequenceMeld (numeric 8 Man) (numeric 9 Man) (numeric 1 Man) False `shouldBe` Nothing
-        sequenceMeld (numeric 9 Sou) (numeric 1 Sou) (numeric 2 Sou) False `shouldBe` Nothing
+        sequentialMeld (numeric 8 Man) (numeric 9 Man) (numeric 1 Man) False `shouldBe` Nothing
+        sequentialMeld (numeric 9 Sou) (numeric 1 Sou) (numeric 2 Sou) False `shouldBe` Nothing
       it "should not allow melds in sequence but not in the same suit" do
-        sequenceMeld (numeric 3 Sou) (numeric 4 Man) (numeric 5 Pin) False `shouldBe` Nothing
+        sequentialMeld (numeric 3 Sou) (numeric 4 Man) (numeric 5 Pin) False `shouldBe` Nothing
     describe "tripletMeld" do
       it "should all be the same tiles" do
-        tripletMeld (numeric 3 Pin) (numeric 3 Pin) (numeric 5 Pin) False `shouldBe` Nothing
-        tripletMeld (numeric 1 Sou) (numeric 1 Sou) (numeric 1 Sou) False `shouldBe` Just (triplet (numeric 1 Sou) (numeric 1 Sou) (numeric 1 Sou) False)
+        property $ forAll getTripletMeld $ \m -> do
+          -- let m'@(Triplet t1 t2 t3 _) = fromTripletMeld m
+          let t1 = numeric 1 Sou
+          tripletMeld (numeric 1 Sou) (numeric 2 Sou) (numeric 3 Sou) False `shouldBe` Nothing
+          tripletMeld t1 t1 t1 False `shouldBe` Just (Triplet t1 t1 t1 False)
+
+-- property do
+--   return $
 
 -- context "1.3 Walls" do
 --   describe "Wall" do
@@ -94,13 +99,53 @@ instance Arbitrary Tile where
         dragon <$> arbitrary
       ]
 
--- newtype HonorTile =
+-- instance Arbitrary Opened where
+--   arbitrary = arbitrary
 
 anyTile :: Gen Tile
 anyTile = arbitrary
+
+anyNumericTile :: Gen Tile
+anyNumericTile = Numeric <$> arbitrary <*> elements [Sou, Pin, Man]
+
+anyOneToSevenNumericTile :: Gen Tile
+anyOneToSevenNumericTile = Numeric <$> chooseInt (1, 7) <*> elements [Sou, Pin, Man]
 
 anyWind :: Gen Tile
 anyWind = wind <$> arbitrary
 
 anyDragon :: Gen Tile
 anyDragon = dragon <$> arbitrary
+
+getMeld :: Gen Meld
+getMeld = undefined
+
+newtype SequentialMeld = SequentialMeld Meld
+  deriving (Eq, Show)
+
+instance Arbitrary SequentialMeld where
+  arbitrary = do
+    t1 <- anyNumericTile
+    let t2 = cycleNext t1
+    let t3 = cycleNext t2
+    opened <- elements [True, False]
+    -- case t2 of Nothing -> Numeric
+    return (SequentialMeld (Triplet t1 t2 t3 opened))
+
+getSequentialMeld :: Gen SequentialMeld
+getSequentialMeld = arbitrary
+
+newtype TripletMeld = TripletMeld Meld
+  deriving (Eq, Show)
+
+instance Arbitrary TripletMeld where
+  arbitrary = do
+    tile <- anyTile
+    opened <- elements [True, False]
+    return (TripletMeld (Triplet tile tile tile opened))
+
+getTripletMeld :: Gen TripletMeld
+getTripletMeld = arbitrary
+
+fromTripletMeld :: TripletMeld -> Meld
+fromTripletMeld (TripletMeld meld) = meld
