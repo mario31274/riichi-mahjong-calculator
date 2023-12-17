@@ -21,16 +21,20 @@ data Dragon = White | Green | Red
 data Tile = Numeric Int Suit | Wind Wind Suit | Dragon Dragon Suit
   deriving (Eq, Ord)
 
--- instance Enum Tile where
---   fromEnum (Numeric n _) = n
---   fromEnum a = fromEnum a
---   toEnum n = (Numeric n _)
-
 numeric :: Int -> Suit -> Tile
 numeric n suit
   | suit == Honor = error "no numeric honor tiles"
   | (n < 1) || (n > 9) = error "num out of bound"
   | otherwise = Numeric n suit
+
+numericSuits :: [Suit]
+numericSuits = [Sou, Pin, Man]
+
+winds :: [Wind]
+winds = [East ..]
+
+dragons :: [Dragon]
+dragons = [White ..]
 
 wind :: Wind -> Tile
 wind w = Wind w Honor
@@ -38,19 +42,24 @@ wind w = Wind w Honor
 dragon :: Dragon -> Tile
 dragon d = Dragon d Honor
 
+nextNumeric :: Tile -> Maybe Tile
+nextNumeric (Numeric n s)
+  | n >= 1 || n <= 8 = Just (Numeric (n + 1) s)
+  | otherwise = Nothing
+nextNumeric _ = Nothing
+
 cycleNext :: Tile -> Tile
 cycleNext t = case t of
   Numeric n s
     | n >= 1 || n <= 8 -> Numeric (n + 1) s
     | otherwise -> Numeric 1 s
-  Wind w s -> Wind (succ w) s
-  Dragon d s -> Dragon (succ d) s
+  Wind w s -> Wind (succ' w) s
+  Dragon d s -> Dragon (succ' d) s
 
-next :: Tile -> Maybe Tile
-next (Numeric n s)
-  | n >= 1 || n <= 8 = Just (Numeric (n + 1) s)
-  | otherwise = Nothing
-next _ = Nothing
+succ' :: (Bounded a, Eq a, Enum a) => a -> a
+succ' n
+  | n == maxBound = minBound
+  | otherwise = succ n
 
 isSimpleTile :: Tile -> Bool
 isSimpleTile (Numeric n _)

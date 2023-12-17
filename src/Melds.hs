@@ -41,8 +41,14 @@ pluck x (y : ys)
       Nothing -> Nothing
       Just (x', ys') -> Just (x', y : ys')
 
-getSeqMeld :: Hand -> Maybe Meld
-getSeqMeld (t : ts) = undefined
+-- getSeqMeld :: Hand -> Maybe (Meld, Hand)
+-- getSeqMeld [] = Nothing
+-- getSeqMeld (t1 : ts) = case t1 of
+--   Numeric n s -> case seqMeld t1 t2 t3 of
+--     Just (Triplet t1 t2 t3 opened) -> Just (Triplet t1 t2 t3 opened, ts3)
+--     where
+--       t2 ts2 = pluck (nextNumeric t1) ts
+--       t3 ts3 = pluck (nextNumeric t2) ts2
 
 -- Closed sequential meld
 seqMeld :: Tile -> Tile -> Tile -> Maybe Meld

@@ -23,7 +23,21 @@ hand =
     Numeric 8 Man
   ]
 
+tileRD :: Tile
+tileRD = Dragon Red Honor
+
+tileWD :: Tile
+tileWD = Dragon White Honor
+
 main :: IO ()
 main = do
-  let possibleCombinations = matchIntoMelds hand
-  mapM_ print possibleCombinations
+  -- let possibleCombinations = matchIntoMelds hand
+  -- mapM_ print possibleCombinations
+  -- print (cycleNext tileRD)
+
+  print fullWall
+  s <- shuffledWall
+  print s
+  let hand14 = take 14 s
+  print hand14
+  print (sortHand hand14)
