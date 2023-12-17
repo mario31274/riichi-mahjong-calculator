@@ -111,7 +111,7 @@ instance Arbitrary Dragon where
 instance Arbitrary Tile where
   arbitrary =
     oneof
-      [ Numeric <$> arbitrary <*> arbitrary,
+      [ numeric <$> arbitrary <*> arbitrary,
         wind <$> arbitrary,
         dragon <$> arbitrary
       ]
@@ -142,9 +142,6 @@ anyDragon = dragon <$> arbitrary
 
 anyNumericSuit :: Gen Suit
 anyNumericSuit = elements [Sou, Pin, Man]
-
-newtype SequentialMeld = SequentialMeld Meld
-  deriving (Eq, Show)
 
 getSequentialMeld :: Gen Meld
 getSequentialMeld = do
@@ -180,3 +177,28 @@ genNonThreeSame gen = do
   if isAllSame xs
     then genNonThreeSame gen
     else return xs
+
+genThreeSequential :: Gen [Tile]
+genThreeSequential = do
+  xs <- vectorOf 3 arbitrary
+  if isSequence xs
+    then genThreeSequential
+    else return xs
+
+sevenPairHand :: Hand
+sevenPairHand =
+  [ Numeric 2 Man,
+    Numeric 2 Man,
+    Numeric 3 Man,
+    Numeric 3 Man,
+    Numeric 4 Man,
+    Numeric 4 Man,
+    Numeric 5 Man,
+    Numeric 5 Man,
+    Numeric 6 Man,
+    Numeric 6 Man,
+    Numeric 7 Man,
+    Numeric 7 Man,
+    Numeric 8 Man,
+    Numeric 8 Man
+  ]

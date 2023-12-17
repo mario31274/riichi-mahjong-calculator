@@ -35,9 +35,11 @@ main = do
   -- mapM_ print possibleCombinations
   -- print (cycleNext tileRD)
 
-  print fullWall
-  s <- shuffledWall
-  print s
-  let hand14 = take 14 s
-  print hand14
-  print (sortHand hand14)
+  -- print fullWall
+  -- s <- shuffledWall
+  -- print s
+  -- let hand14 = take 14 s
+  -- print hand14
+  -- print (sortHand hand14)
+  print hand
+  print (fmap meldToTiles (matchIntoMelds hand))

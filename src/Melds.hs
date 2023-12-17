@@ -7,13 +7,13 @@ import Wall
 
 type Opened = Bool
 
-data Pair = Pair Tile Tile
+-- data Pair = Pair Tile Tile
+--   deriving (Show, Ord, Eq)
+
+data Meld = Pair Tile Tile | Triplet Tile Tile Tile Opened | Quad Tile Tile Tile Tile Opened
   deriving (Show, Ord, Eq)
 
-data Meld = Triplet Tile Tile Tile Opened | Quad Tile Tile Tile Tile Opened
-  deriving (Show, Ord, Eq)
-
-pairMeld :: Tile -> Tile -> Maybe Pair
+pairMeld :: Tile -> Tile -> Maybe Meld
 pairMeld t1 t2
   | isAllSame [t1, t2] = Just (Pair t1 t2)
   | otherwise = Nothing
@@ -33,30 +33,34 @@ quadMeld t1 t2 t3 t4 opened
   | isAllSame [t1, t2, t3, t4] = Just (Quad t1 t2 t3 t4 opened)
   | otherwise = Nothing
 
-pluck :: (Eq a) => a -> [a] -> Maybe (a, [a])
+pluck :: (Eq a) => a -> [a] -> Maybe [a]
 pluck x [] = Nothing
 pluck x (y : ys)
-  | x == y = Just (y, ys)
-  | otherwise = case pluck x ys of
-      Nothing -> Nothing
-      Just (x', ys') -> Just (x', y : ys')
+  | x == y = Just ys
+  | otherwise = fmap (x :) (pluck x ys)
 
--- getSeqMeld :: Hand -> Maybe (Meld, Hand)
--- getSeqMeld [] = Nothing
--- getSeqMeld (t1 : ts) = case t1 of
---   Numeric n s -> case seqMeld t1 t2 t3 of
---     Just (Triplet t1 t2 t3 opened) -> Just (Triplet t1 t2 t3 opened, ts3)
---     where
---       t2 ts2 = pluck (nextNumeric t1) ts
---       t3 ts3 = pluck (nextNumeric t2) ts2
+meldToTiles :: Meld -> [Tile]
+meldToTiles (Pair t1 t2) = [t1, t2]
+meldToTiles (Triplet t1 t2 t3 _) = [t1, t2, t3]
+meldToTiles (Quad t1 t2 t3 t4 _) = [t1, t2, t3, t4]
+
+isTileInMeld :: Tile -> Meld -> Bool
+isTileInMeld t m = t `elem` meldToTiles m
+
+pMeld :: Tile -> Maybe Meld
+pMeld t = pairMeld t t
 
 -- Closed sequential meld
-seqMeld :: Tile -> Tile -> Tile -> Maybe Meld
-seqMeld t1 t2 t3 = sequentialMeld t1 t2 t3 False
+seqMeld :: Tile -> Maybe Meld
+seqMeld t1 = case nextNumeric t1 of
+  Nothing -> Nothing
+  Just t2 -> case nextNumeric t2 of
+    Nothing -> Nothing
+    Just t3 -> sequentialMeld t1 t2 t3 False
 
 -- Closed triplet meld
 triMeld :: Tile -> Maybe Meld
-triMeld t1 = tripletMeld t1 t1 t1 False
+triMeld t = tripletMeld t t t False
 
 -- --Unmodifiable melds--
 --
@@ -111,7 +115,7 @@ combinations 0 _ = [[]]
 combinations _ [] = []
 combinations k (x : xs) = map (x :) (combinations (k - 1) xs) ++ combinations k xs
 
--- All simple
+-- Meld without terminal tiles
 isTanyaoMeld :: Meld -> Bool
 isTanyaoMeld (Triplet t1 t2 t3 _) = all isSimpleTile [t1, t2, t3] && isSequence [t1, t2, t3]
 isTanyaoMeld _ = False
