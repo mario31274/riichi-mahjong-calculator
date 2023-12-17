@@ -58,8 +58,7 @@ main = hspec do
           sequentialMeld (numeric 8 s) (numeric 9 s) (numeric 1 s) False `shouldBe` Nothing
           sequentialMeld (numeric 9 s) (numeric 1 s) (numeric 2 s) False `shouldBe` Nothing
       it "should not allow melds in sequence but not in the same suit" do
-        property $ do
-          ss <- generate $ resize 10 $ genNonThreeSame anyNumericSuit
+        property $ forAll (genNonThreeSame anyNumericSuit) $ \ss -> do
           case ss of
             (s1 : s2 : s3 : _) ->
               sequentialMeld (numeric 3 s1) (numeric 4 s2) (numeric 5 s3) False `shouldBe` Nothing
@@ -176,15 +175,8 @@ newtype SortedHand = SortedHand Hand
 
 -- Custom generator for a list with the specified constraint
 genNonThreeSame :: (Eq a) => Gen a -> Gen [a]
-genNonThreeSame genElement = do
-  elements <- listOf genElement
-  return $ filterConsecutive3 elements
-
--- Helper function to filter out lists with three consecutive identical elements
-filterConsecutive3 :: (Eq a) => [a] -> [a]
-filterConsecutive3 [] = []
-filterConsecutive3 [x] = [x]
-filterConsecutive3 [x, y] = [x, y]
-filterConsecutive3 (x : y : z : rest)
-  | x == y && y == z = filterConsecutive3 (x : y : rest)
-  | otherwise = x : filterConsecutive3 (y : z : rest)
+genNonThreeSame gen = do
+  xs <- vectorOf 3 gen
+  if isAllSame xs
+    then genNonThreeSame gen
+    else return xs
