@@ -22,7 +22,8 @@ extra-source-files:
     README.md
 
 library
-    exposed-modules:  Parser,
+    exposed-modules:  Calculator,
+                      Parser,
                       Melds,
                       Rules,
                       Tiles,

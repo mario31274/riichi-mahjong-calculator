@@ -9,11 +9,11 @@ import Wall
 hand :: Hand
 hand =
   [ Numeric 2 Man,
-    Numeric 2 Man,
+    Numeric 2 Pin,
     Numeric 3 Man,
-    Numeric 3 Man,
+    Numeric 3 Pin,
     Numeric 4 Man,
-    Numeric 4 Man,
+    Numeric 4 Sou,
     Numeric 5 Man,
     Numeric 5 Man,
     Numeric 6 Man,
@@ -21,6 +21,41 @@ hand =
     Numeric 7 Man,
     Numeric 7 Man,
     Numeric 8 Man,
+    Numeric 8 Man
+  ]
+
+hand2 :: (Hand, [Meld])
+hand2 =
+  ( [ Numeric 2 Man,
+      Numeric 3 Man,
+      Numeric 4 Man,
+      Numeric 5 Man,
+      Numeric 5 Man,
+      Numeric 6 Man,
+      Numeric 6 Man,
+      Numeric 7 Man,
+      Numeric 7 Man,
+      Numeric 8 Man,
+      Numeric 8 Man
+    ],
+    [Run (Numeric 2 Man) (Numeric 3 Man) (Numeric 4 Man) True]
+  )
+
+hand3 :: Hand
+hand3 =
+  [ Numeric 2 Man,
+    Numeric 2 Man,
+    Numeric 2 Man,
+    Numeric 3 Man,
+    Numeric 3 Man,
+    Numeric 3 Man,
+    Numeric 4 Man,
+    Numeric 4 Man,
+    Numeric 4 Man,
+    Numeric 5 Man,
+    Numeric 5 Man,
+    Numeric 6 Man,
+    Numeric 7 Man,
     Numeric 8 Man
   ]
 
@@ -43,9 +78,9 @@ main = do
   -- print hand14
   -- print (sortHand hand14)
 
-  print hand
+  print hand3
 
-  print (matchIntoMelds hand)
+  print (matchIntoMelds hand3)
 
 -- let m = match hand (Triplet (Numeric 2 Man) (Numeric 3 Man) (Numeric 4 Man) False)
 -- if m != Nothing then do

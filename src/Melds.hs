@@ -16,7 +16,7 @@ data Meld = Pair Tile Tile | Run Tile Tile Tile Opened | Triplet Tile Tile Tile 
 instance Show Meld where
   show :: Meld -> String
   show m = case m of
-    Pair t1 t2 -> "Pair" ++ show (t1, t2)
+    Pair t1 t2 -> show (t1, t2)
     Run t1 t2 t3 True -> "Chi" ++ show (t1, t2, t3)
     Run t1 t2 t3 False -> show (t1, t2, t3)
     Triplet t1 t2 t3 True -> "Pon" ++ show (t1, t2, t3)
