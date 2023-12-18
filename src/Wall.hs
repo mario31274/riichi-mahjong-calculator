@@ -3,15 +3,13 @@
 module Wall where
 
 import Data.List
+import Meld
 import System.Random
 import Tile
 
-type Hand = [Tile]
+type Hand = ([Tile], [Meld])
 
 type Wall = [Tile]
-
-handToWall :: Hand -> Wall
-handToWall h = h
 
 data Indexed i a = Index {index :: i, item :: a}
   deriving (Show, Eq, Ord)
@@ -37,5 +35,5 @@ shuffledWall = do
   let rand = randoms seed
   return (shuffle rand fullWall)
 
-sortHand :: Hand -> Hand
-sortHand = sort
+sortTiles :: [Tile] -> [Tile]
+sortTiles = sort

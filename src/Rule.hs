@@ -1,10 +1,12 @@
 module Rule where
 
 import Data.List
-import GHC.IO.Device (IODevice (isTerminal))
 import Meld
 import Tile
 import Wall
+
+-- The two metrics for calculating final score
+type HanFu = (Int, Int)
 
 isSevenPairs :: [Meld] -> Bool
 isSevenPairs melds = length (uniq melds) == 7
@@ -14,4 +16,4 @@ uniq :: (Eq b) => [b] -> [b]
 uniq = map head . group
 
 isThirteenOrphans :: Hand -> Bool
-isThirteenOrphans hand = all isTerminalTile hand && length (uniq $ sortHand hand) == 13
+isThirteenOrphans (tiles, _) = all isTerminalTile tiles && length (uniq $ sort tiles) == 13

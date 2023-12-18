@@ -3,14 +3,13 @@
 module Meld where
 
 import Tile
-import Wall
 
 type Opened = Bool
 
 -- data Pair = Pair Tile Tile
 --   deriving (Show, Ord, Eq)
 
-data Meld = Single Tile | Pair Tile Tile | Run Tile Tile Tile Opened | Triplet Tile Tile Tile Opened | Quad Tile Tile Tile Tile Opened
+data Meld = Pair Tile Tile | Run Tile Tile Tile Opened | Triplet Tile Tile Tile Opened | Quad Tile Tile Tile Tile Opened
   deriving (Ord, Eq)
 
 instance Show Meld where
@@ -109,7 +108,7 @@ isAllSame (x : xs) = all (== x) xs
 isAllSame _ = False
 
 -- Function to check if a hand has a pair
-hasPair :: Hand -> Bool
+hasPair :: [Tile] -> Bool
 hasPair tiles = any (uncurry (==)) $ pairs tiles
   where
     pairs :: [a] -> [(a, a)]
