@@ -19,7 +19,7 @@ data Dragon = White | Green | Red
   deriving (Eq, Enum, Bounded, Ord)
 
 data Tile = Numeric Int Suit | Wind Wind Suit | Dragon Dragon Suit
-  deriving (Eq, Ord)
+  deriving (Eq)
 
 numeric :: Int -> Suit -> Tile
 numeric n suit

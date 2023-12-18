@@ -15,6 +15,12 @@ matchStandard :: Hand -> WinningHand
 --   where m1
 matchStandard h = undefined
 
+pluck :: (Eq a) => a -> [a] -> Maybe [a]
+pluck x [] = Nothing
+pluck x (y : ys)
+  | x == y = Just ys
+  | otherwise = fmap (y :) (pluck x ys)
+
 -- Function to classify tiles into meld types
 classifyMeld :: [Tile] -> String
 classifyMeld tiles

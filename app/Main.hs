@@ -1,5 +1,6 @@
 module Main where
 
+import Data.Maybe
 import Melds
 import Rules
 import Tiles
@@ -41,5 +42,15 @@ main = do
   -- let hand14 = take 14 s
   -- print hand14
   -- print (sortHand hand14)
+
   print hand
-  print (fmap meldToTiles (matchIntoMelds hand))
+
+  print (matchIntoMelds hand)
+
+-- let m = match hand (Triplet (Numeric 2 Man) (Numeric 3 Man) (Numeric 4 Man) False)
+-- if m != Nothing then do
+-- print m
+
+-- let m2 = fromJust (pluck (Numeric 3 Man) hand)
+-- let m2 = removeItem (Numeric 3 Man) hand
+-- print m2

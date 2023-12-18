@@ -7,6 +7,7 @@
 -- import Melds
 
 import Melds
+import Rules
 import Test.Hspec
 import Test.QuickCheck
 import Test.QuickCheck.Exception
@@ -78,6 +79,10 @@ main = hspec do
       describe "sortHand" do
         it "should sort a hand in numeric order than in suit" do
           pendingWith "pending..."
+      describe "pluck" do
+        it "should only take one tile away" do
+          property $ forAll anyHandOf14 $ \(h : hs) -> do
+            pluck h (h : hs) `shouldBe` Just (removeItem h (h : hs))
 
 -- property do
 --   return $
@@ -111,7 +116,7 @@ instance Arbitrary Dragon where
 instance Arbitrary Tile where
   arbitrary =
     oneof
-      [ numeric <$> arbitrary <*> arbitrary,
+      [ anyNumericTile,
         wind <$> arbitrary,
         dragon <$> arbitrary
       ]
@@ -123,7 +128,7 @@ anyTile :: Gen Tile
 anyTile = arbitrary
 
 anyNumericTile :: Gen Tile
-anyNumericTile = Numeric <$> arbitrary <*> elements [Sou, Pin, Man]
+anyNumericTile = Numeric <$> chooseInt (1, 9) <*> elements [Sou, Pin, Man]
 
 anyNonTerminalTile :: Gen Tile
 anyNonTerminalTile = Numeric <$> chooseInt (2, 8) <*> elements [Sou, Pin, Man]
@@ -142,6 +147,9 @@ anyDragon = dragon <$> arbitrary
 
 anyNumericSuit :: Gen Suit
 anyNumericSuit = elements [Sou, Pin, Man]
+
+anyHandOf14 :: Gen Hand
+anyHandOf14 = vectorOf 14 (elements fullWall)
 
 getSequentialMeld :: Gen Meld
 getSequentialMeld = do
@@ -202,3 +210,9 @@ sevenPairHand =
     Numeric 8 Man,
     Numeric 8 Man
   ]
+
+removeItem :: (Eq a) => a -> [a] -> [a]
+removeItem _ [] = []
+removeItem x (y : ys)
+  | x == y = ys
+  | otherwise = y : removeItem x ys
