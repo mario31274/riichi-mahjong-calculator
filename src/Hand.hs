@@ -1,11 +1,10 @@
-module Rules where
+module Hand where
 
 import Control.Applicative
-import Control.Monad (msum)
 import Data.List
 import Data.Maybe (fromMaybe)
-import Melds
-import Tiles
+import Meld
+import Tile
 import Wall
 
 data WinningHand = Standard [Meld] | SevenPairs [Meld] | ThirteenOrphans [Tile]
@@ -50,27 +49,45 @@ match hand (Triplet t1 t2 t3 _) = do
 match hand (Pair t1 t2) = do
   h1 <- pluck t1 hand
   pluck t2 h1
+match hand (Single t) = do
+  pluck t hand
 match hand _ = Nothing
 
--- matchOneMeld :: Hand -> Maybe (Meld Hand)
--- matchIntoMelds (t:ts) = case seqMeld t of
---   Nothing -> matchIntoMelds ts
---   Just meld -> case match (t:ts) meld of
---     Just hand ->
+matchIntoMelds :: Hand -> [([Meld], [Tile])]
+matchIntoMelds hand = matchPattern ([], hand) patterns
 
-matchIntoMelds :: Hand -> ([Meld], [Tile])
-matchIntoMelds hand = go hand ([], [])
-  where
-    go :: Hand -> ([Meld], [Tile]) -> ([Meld], [Tile])
-    go [] (melds, tiles) = (melds, tiles)
-    go h (melds, tiles) = case matchOneMeld h of
-      Just (meld, newHand) -> go newHand (melds ++ [meld], tiles)
-      Nothing -> go (tail h) (melds, tiles ++ [head h])
+matchPattern :: ([Meld], Hand) -> [[Hand -> Maybe (Meld, Hand)]] -> [([Meld], [Tile])]
+matchPattern (melds, hand) [] = []
+matchPattern (melds, hand) (pattern : patterns) =
+  matchOnePattern (melds, hand) pattern : matchPattern (melds, hand) patterns
 
--- Helper function to try matching a single meld
-matchOneMeld :: Hand -> Maybe (Meld, Hand)
--- matchOneMeld hand = matchTriplet hand <|> matchRun hand <|> matchPair hand
-matchOneMeld hand = matchTriplet hand <|> matchRun hand
+matchOnePattern :: ([Meld], Hand) -> [Hand -> Maybe (Meld, Hand)] -> ([Meld], [Tile])
+matchOnePattern (melds, hand) [] = (melds, hand)
+matchOnePattern (melds, hand) (matcher : matchers) =
+  case matcher hand of
+    Just (meld, newHand) -> matchOnePattern (melds ++ [meld], newHand) matchers
+    Nothing -> (melds, hand)
+
+patterns :: [[Hand -> Maybe (Meld, Hand)]]
+patterns =
+  [ [matchPair, match3, match3, match3, match3],
+    [match3, matchPair, match3, match3, match3],
+    [match3, match3, matchPair, match3, match3],
+    [match3, match3, match3, matchPair, match3],
+    [match3, match3, match3, match3, matchPair],
+    [matchPair, match3', match3', match3', match3'],
+    [match3', matchPair, match3', match3', match3'],
+    [match3', match3', matchPair, match3', match3'],
+    [match3', match3', match3', matchPair, match3'],
+    [match3', match3', match3', match3', matchPair],
+    [matchPair, matchPair, matchPair, matchPair, matchPair, matchPair, matchPair]
+  ]
+
+match3 :: Hand -> Maybe (Meld, Hand)
+match3 hand = matchRun hand <|> matchTriplet hand
+
+match3' :: Hand -> Maybe (Meld, Hand)
+match3' hand = matchTriplet hand <|> matchRun hand
 
 -- Helper function to try matching a pair
 matchPair :: Hand -> Maybe (Meld, Hand)
@@ -90,8 +107,16 @@ matchWith meld (t : ts) = do
   case match (t : ts) m of
     Nothing -> Nothing
     Just hand' -> Just (m, hand')
+matchWith meld [] = Nothing
 
--- matchHandWithMeld :: (Hand, [Meld]) ->
+validMatches :: [([Meld], [Tile])] -> [[Meld]]
+validMatches [] = []
+validMatches (match : matches) = case match of
+  (m, []) -> m : validMatches matches
+  _ -> validMatches matches
+
+filterUniquePermutations :: (Eq a, Ord a) => [a] -> [[a]]
+filterUniquePermutations xs = nub $ map sort $ permutations xs
 
 findWinningTile :: WinningHand -> Tile -> Maybe Meld
 findWinningTile (Standard ms) = findTileInMelds ms

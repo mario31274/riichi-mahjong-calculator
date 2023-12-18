@@ -4,7 +4,7 @@ module Wall where
 
 import Data.List
 import System.Random
-import Tiles
+import Tile
 
 type Hand = [Tile]
 

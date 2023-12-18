@@ -1,4 +1,4 @@
-module Tiles where
+module Tile where
 
 import Data.Char
 import Numeric (showHex)

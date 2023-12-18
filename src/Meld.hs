@@ -1,8 +1,8 @@
 {-# LANGUAGE InstanceSigs #-}
 
-module Melds where
+module Meld where
 
-import Tiles
+import Tile
 import Wall
 
 type Opened = Bool
@@ -10,8 +10,8 @@ type Opened = Bool
 -- data Pair = Pair Tile Tile
 --   deriving (Show, Ord, Eq)
 
-data Meld = Pair Tile Tile | Run Tile Tile Tile Opened | Triplet Tile Tile Tile Opened | Quad Tile Tile Tile Tile Opened
-  deriving (Ord, Eq)
+data Meld = Single Tile | Pair Tile Tile | Run Tile Tile Tile Opened | Triplet Tile Tile Tile Opened | Quad Tile Tile Tile Tile Opened
+  deriving (Eq)
 
 instance Show Meld where
   show :: Meld -> String
@@ -23,6 +23,10 @@ instance Show Meld where
     Triplet t1 t2 t3 False -> show (t1, t2, t3)
     Quad t1 t2 t3 t4 True -> "Kan" ++ show (t1, t2, t3, t4)
     Quad t1 t2 t3 t4 False -> "ClosedKan" ++ show (t1, t2, t3, t4)
+
+instance Ord Meld where
+  compare :: Meld -> Meld -> Ordering
+  compare (Quad t1 _ _ _ False) (Quad t2 _ _ _ True) = LT
 
 pairMeld :: Tile -> Tile -> Maybe Meld
 pairMeld t1 t2

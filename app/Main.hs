@@ -1,9 +1,9 @@
 module Main where
 
 import Data.Maybe
-import Melds
-import Rules
-import Tiles
+import Hand
+import Meld
+import Tile
 import Wall
 
 hand :: Hand
@@ -80,7 +80,8 @@ main = do
 
   print hand3
 
-  print (matchIntoMelds hand3)
+  let u = filterUniquePermutations (validMatches (matchIntoMelds hand3))
+  print u
 
 -- let m = match hand (Triplet (Numeric 2 Man) (Numeric 3 Man) (Numeric 4 Man) False)
 -- if m != Nothing then do

@@ -24,9 +24,9 @@ extra-source-files:
 library
     exposed-modules:  Calculator,
                       Parser,
-                      Melds,
-                      Rules,
-                      Tiles,
+                      Meld,
+                      Hand,
+                      Tile,
                       Wall
 
     -- Modules included in this library but not exported.
