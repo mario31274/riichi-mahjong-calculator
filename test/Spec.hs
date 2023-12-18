@@ -6,12 +6,13 @@
 
 -- import Melds
 
-import Melds
-import Rules
+import Match
+import Meld
+import Rule
 import Test.Hspec
 import Test.QuickCheck
 import Test.QuickCheck.Exception
-import Tiles
+import Tile
 import Wall
 
 -- import Test.QuickCheck hiding (shuffle)

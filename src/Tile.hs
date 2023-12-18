@@ -1,3 +1,5 @@
+{-# LANGUAGE InstanceSigs #-}
+
 module Tile where
 
 import Data.Char
@@ -20,6 +22,21 @@ data Dragon = White | Green | Red
 
 data Tile = Numeric Int Suit | Wind Wind Suit | Dragon Dragon Suit
   deriving (Eq)
+
+instance Ord Tile where
+  compare :: Tile -> Tile -> Ordering
+  compare (Numeric n1 s1) (Numeric n2 s2)
+    | s1 == s2 && n1 < n2 = LT
+    | s1 == s2 && n1 == n2 = EQ
+    | s1 == s2 && n1 > n2 = GT
+    | s1 < s2 = LT
+    | otherwise = GT
+  compare (Wind w1 _) (Wind w2 _) = compare w1 w2
+  compare (Dragon d1 _) (Dragon d2 _) = compare d1 d2
+  compare (Numeric _ _) _ = LT
+  compare (Wind _ _) (Dragon _ _) = LT
+  compare (Wind _ _) (Numeric _ _) = GT
+  compare (Dragon _ _) _ = GT
 
 numeric :: Int -> Suit -> Tile
 numeric n suit
@@ -61,11 +78,14 @@ succ' n
   | n == maxBound = minBound
   | otherwise = succ n
 
-isSimpleTile :: Tile -> Bool
-isSimpleTile (Numeric n _)
+isNonTerminalTile :: Tile -> Bool
+isNonTerminalTile (Numeric n _)
   | (n < 2) || (n > 8) = False
   | otherwise = True
-isSimpleTile _ = False
+isNonTerminalTile _ = False
+
+isTerminalTile :: Tile -> Bool
+isTerminalTile t = not $ isNonTerminalTile t
 
 instance Show Suit where
   show suit = case suit of

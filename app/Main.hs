@@ -1,19 +1,20 @@
 module Main where
 
 import Data.Maybe
-import Hand
+import Match
 import Meld
+import Rule
 import Tile
 import Wall
 
-hand :: Hand
-hand =
+hand1 :: Hand
+hand1 =
   [ Numeric 2 Man,
-    Numeric 2 Pin,
+    Numeric 2 Man,
     Numeric 3 Man,
-    Numeric 3 Pin,
+    Numeric 3 Man,
     Numeric 4 Man,
-    Numeric 4 Sou,
+    Numeric 4 Man,
     Numeric 5 Man,
     Numeric 5 Man,
     Numeric 6 Man,
@@ -59,6 +60,42 @@ hand3 =
     Numeric 8 Man
   ]
 
+hand4 :: Hand
+hand4 =
+  [ Numeric 2 Man,
+    Numeric 2 Man,
+    Numeric 2 Man,
+    Numeric 2 Man,
+    Numeric 3 Man,
+    Numeric 3 Man,
+    Numeric 3 Man,
+    Numeric 3 Man,
+    Numeric 4 Man,
+    Numeric 4 Man,
+    Numeric 4 Man,
+    Numeric 4 Man,
+    Numeric 5 Man,
+    Numeric 5 Man
+  ]
+
+handThirteen :: Hand
+handThirteen =
+  [ Numeric 1 Pin,
+    Numeric 9 Pin,
+    Numeric 1 Sou,
+    Numeric 9 Sou,
+    Numeric 1 Man,
+    Numeric 9 Man,
+    Wind East Honor,
+    Wind South Honor,
+    Wind West Honor,
+    Wind North Honor,
+    Dragon White Honor,
+    Dragon Green Honor,
+    Dragon Green Honor,
+    Dragon Red Honor
+  ]
+
 tileRD :: Tile
 tileRD = Dragon Red Honor
 
@@ -67,8 +104,7 @@ tileWD = Dragon White Honor
 
 main :: IO ()
 main = do
-  -- let possibleCombinations = matchIntoMelds hand
-  -- mapM_ print possibleCombinations
+  let testHand = hand4
   -- print (cycleNext tileRD)
 
   -- print fullWall
@@ -78,10 +114,20 @@ main = do
   -- print hand14
   -- print (sortHand hand14)
 
-  print hand3
+  print testHand
+  print $ validMatches $ matchIntoMelds testHand
+  print $ isSevenPairs $ fst $ matchOnePattern ([], testHand) [matchPair, matchPair, matchPair, matchPair, matchPair, matchPair, matchPair]
 
-  let u = filterUniquePermutations (validMatches (matchIntoMelds hand3))
-  print u
+  print hand2
+  print $ validMatches $ matchPattern ((\(h, ms) -> (ms, h)) hand2) patterns
+
+-- let m = fst $ matchOnePattern ([], testHand) [matchPair, matchPair, matchPair, matchPair, matchPair, matchPair, matchPair]
+-- print $ uniq m
+-- print $ isThirteenOrphans handThirteen
+
+-- print $ uniq handThirteen
+
+-- print $ isTerminalTile (Wind East Honor)
 
 -- let m = match hand (Triplet (Numeric 2 Man) (Numeric 3 Man) (Numeric 4 Man) False)
 -- if m != Nothing then do

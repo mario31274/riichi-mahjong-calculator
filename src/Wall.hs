@@ -39,20 +39,3 @@ shuffledWall = do
 
 sortHand :: Hand -> Hand
 sortHand = sort
-
-instance Ord Tile where
-  compare :: Tile -> Tile -> Ordering
-  compare (Numeric n1 s1) (Numeric n2 s2)
-    | s1 == s2 && n1 < n2 = LT
-    | s1 == s2 && n1 == n2 = EQ
-    | s1 == s2 && n1 > n2 = GT
-    | s1 < s2 = LT
-    | otherwise = GT
-  compare (Wind w1 s1) (Wind w2 s2) = compare (w1, s1) (w2, s2)
-  compare (Dragon d1 s1) (Dragon d2 s2) = compare (d1, s1) (d2, s2)
-  compare (Numeric _ _) (Wind _ _) = LT
-  compare (Wind _ _) (Numeric _ _) = GT
-  compare (Numeric _ _) (Dragon _ _) = LT
-  compare (Dragon _ _) (Numeric _ _) = GT
-  compare (Wind _ _) (Dragon _ _) = LT
-  compare (Dragon _ _) (Wind _ _) = GT

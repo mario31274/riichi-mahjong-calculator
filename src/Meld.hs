@@ -11,7 +11,7 @@ type Opened = Bool
 --   deriving (Show, Ord, Eq)
 
 data Meld = Single Tile | Pair Tile Tile | Run Tile Tile Tile Opened | Triplet Tile Tile Tile Opened | Quad Tile Tile Tile Tile Opened
-  deriving (Eq)
+  deriving (Ord, Eq)
 
 instance Show Meld where
   show :: Meld -> String
@@ -24,9 +24,9 @@ instance Show Meld where
     Quad t1 t2 t3 t4 True -> "Kan" ++ show (t1, t2, t3, t4)
     Quad t1 t2 t3 t4 False -> "ClosedKan" ++ show (t1, t2, t3, t4)
 
-instance Ord Meld where
-  compare :: Meld -> Meld -> Ordering
-  compare (Quad t1 _ _ _ False) (Quad t2 _ _ _ True) = LT
+-- instance Ord Meld where
+--   compare :: Meld -> Meld -> Ordering
+--   compare (Quad t1 _ _ _ False) (Quad t2 _ _ _ True) = LT
 
 pairMeld :: Tile -> Tile -> Maybe Meld
 pairMeld t1 t2
@@ -134,5 +134,6 @@ combinations k (x : xs) = map (x :) (combinations (k - 1) xs) ++ combinations k 
 
 -- Meld without terminal tiles
 isTanyaoMeld :: Meld -> Bool
-isTanyaoMeld (Triplet t1 t2 t3 _) = all isSimpleTile [t1, t2, t3] && isSequence [t1, t2, t3]
+isTanyaoMeld (Run t1 t2 t3 _) = all isNonTerminalTile [t1, t2, t3]
+isTanyaoMeld (Triplet t1 t2 t3 _) = all isNonTerminalTile [t1, t2, t3]
 isTanyaoMeld _ = False
