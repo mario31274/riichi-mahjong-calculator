@@ -82,7 +82,7 @@ main = hspec do
           pendingWith "pending..."
       describe "pluck" do
         it "should only take one tile away" do
-          property $ forAll anyHandOf14 $ \(h : hs) -> do
+          property $ forAll anyTilesOf14 $ \(h : hs) -> do
             pluck h (h : hs) `shouldBe` Just (removeItem h (h : hs))
 
 -- property do
@@ -149,8 +149,8 @@ anyDragon = dragon <$> arbitrary
 anyNumericSuit :: Gen Suit
 anyNumericSuit = elements [Sou, Pin, Man]
 
-anyHandOf14 :: Gen Hand
-anyHandOf14 = vectorOf 14 (elements fullWall)
+anyTilesOf14 :: Gen [Tile]
+anyTilesOf14 = vectorOf 14 (elements fullWall)
 
 getSequentialMeld :: Gen Meld
 getSequentialMeld = do
@@ -177,8 +177,6 @@ dealWithNumericTile = undefined
 fromTripletMeld :: TripletMeld -> Meld
 fromTripletMeld (TripletMeld meld) = meld
 
-newtype SortedHand = SortedHand Hand
-
 -- Custom generator for a list with the specified constraint
 genNonThreeSame :: (Eq a) => Gen a -> Gen [a]
 genNonThreeSame gen = do
@@ -194,23 +192,31 @@ genThreeSequential = do
     then genThreeSequential
     else return xs
 
+-- genHand :: Gen Hand
+-- genHand = do
+--   tiles <- arbitrary
+--   melds <- arbitrary
+--   return (tiles, melds)
+
 sevenPairHand :: Hand
 sevenPairHand =
-  [ Numeric 2 Man,
-    Numeric 2 Man,
-    Numeric 3 Man,
-    Numeric 3 Man,
-    Numeric 4 Man,
-    Numeric 4 Man,
-    Numeric 5 Man,
-    Numeric 5 Man,
-    Numeric 6 Man,
-    Numeric 6 Man,
-    Numeric 7 Man,
-    Numeric 7 Man,
-    Numeric 8 Man,
-    Numeric 8 Man
-  ]
+  ( [ Numeric 2 Man,
+      Numeric 2 Man,
+      Numeric 3 Man,
+      Numeric 3 Man,
+      Numeric 4 Man,
+      Numeric 4 Man,
+      Numeric 5 Man,
+      Numeric 5 Man,
+      Numeric 6 Man,
+      Numeric 6 Man,
+      Numeric 7 Man,
+      Numeric 7 Man,
+      Numeric 8 Man,
+      Numeric 8 Man
+    ],
+    []
+  )
 
 removeItem :: (Eq a) => a -> [a] -> [a]
 removeItem _ [] = []

@@ -1,12 +1,17 @@
 module Table where
 
-import Data.Map
+import Player
+import Tile
+import Wall
 
 data Board = Board
-  { players :: Player a,
-    wall :: Wall a,
-    round :: Round,
-    roundHand :: RoundHand,
-    roundBonus :: Integer
+  { player1 :: Player,
+    player2 :: Player,
+    player3 :: Player,
+    player4 :: Player,
+    wall :: Wall,
+    round :: Wind,
+    player1Wind :: Wind,
+    counterSticks :: Int
   }
   deriving (Show)

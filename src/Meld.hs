@@ -6,9 +6,6 @@ import Tile
 
 type Opened = Bool
 
--- data Pair = Pair Tile Tile
---   deriving (Show, Ord, Eq)
-
 data Meld = Pair Tile Tile | Run Tile Tile Tile Opened | Triplet Tile Tile Tile Opened | Quad Tile Tile Tile Tile Opened
   deriving (Ord, Eq)
 
@@ -108,28 +105,20 @@ isAllSame (x : xs) = all (== x) xs
 isAllSame _ = False
 
 -- Function to check if a hand has a pair
-hasPair :: [Tile] -> Bool
-hasPair tiles = any (uncurry (==)) $ pairs tiles
-  where
-    pairs :: [a] -> [(a, a)]
-    pairs [] = []
-    pairs [_] = []
-    pairs (x : y : xs) = (x, y) : pairs xs
-
--- Function to categorize a hand into sequences, triples, and a pair
--- categorizeWinningHand :: Hand -> ([Maybe Meld], [Maybe Meld], [Maybe Meld], [Maybe Meld])
--- categorizeWinningHand hand =
---   ([pairMeld], [sequentialMeld], [tripletMeld], [quadMeld])
+-- hasPair :: [Tile] -> Bool
+-- hasPair tiles = any (uncurry (==)) $ pairs tiles
 --   where
---     sequences = filter isSequence (combinations 3 hand)
---     triples = filter isAllSame (combinations 3 hand)
---     pairs = filter isAllSame (combinations 2 hand)
+--     pairs :: [a] -> [(a, a)]
+--     pairs [] = []
+--     pairs [_] = []
+--     pairs (x : y : xs) = (x, y) : pairs xs
 
--- Function to generate combinations of a certain size
-combinations :: Int -> [a] -> [[a]]
-combinations 0 _ = [[]]
-combinations _ [] = []
-combinations k (x : xs) = map (x :) (combinations (k - 1) xs) ++ combinations k xs
+isClosedMeld :: Meld -> Bool
+isClosedMeld m = case m of
+  Pair _ _ -> True
+  Run _ _ _ o -> not o
+  Triplet _ _ _ o -> not o
+  Quad _ _ _ _ o -> not o
 
 -- Meld without terminal tiles
 isTanyaoMeld :: Meld -> Bool

@@ -107,16 +107,3 @@ findTileInMelds [] _ = Nothing
 findTileInMelds (m : ms) t
   | t `isTileInMeld` m = Just m
   | otherwise = findTileInMelds ms t
-
--- -- Standard winning hand
--- standardWinningHand :: Hand -> WinningHand
--- standardWinningHand hand = Standard
-
--- -- All simple
--- isAllSimple :: WinningHand -> Bool
--- isAllSimple win = case win of
---   Standard p ms -> all ms isSequentialMeld
-
--- Pinfu / No-points hand
-
--- Seven Pairs
