@@ -35,32 +35,42 @@ isAllSimple ms _ = all (all isNonTerminalTile . meldToTiles) ms
 
 -- Pinfu / No-points hand  (closed or opened)
 isPinfu :: [Meld] -> Tile -> Bool
-isPinfu ms t = do
+isPinfu ms wt = do
   let threes = tail $ sort ms
-  let winningMeld = findTileInMelds ms t
+  let winningMeld = findTileInMelds ms wt
   case winningMeld of
-    Just (Run t1 t2 t3 False) -> helper threes && isTwoSideWait (Run t1 t2 t3 False) t
+    Just (Run t1 t2 t3 False) -> helper threes && isTwoSideWait (Run t1 t2 t3 False) wt
     _ -> False
   where
     helper :: [Meld] -> Bool
     helper [] = True
     helper (m : ms) = case m of
-      (Run _ _ _ False) -> helper ms
+      Run _ _ _ _ -> helper ms
       _ -> False
 
 -- Twin Sequences
-isTwinSequences :: [Meld] -> Bool
-isTwinSequences ms = not (isDoubleTwinSequences ms)
+isTwinSequences :: [Meld] -> Tile -> Bool
+isTwinSequences ms wt =
+  all isClosedRun threes
+    && length ms - length (nub ms) == 1
+  where
+    threes = tail $ sort ms
 
 -- Double Twin Sequences
-isDoubleTwinSequences :: [Meld] -> Bool
-isDoubleTwinSequences ms = undefined
+isDoubleTwinSequences :: [Meld] -> Tile -> Bool
+isDoubleTwinSequences ms _ =
+  all isClosedRun threes
+    && length ms - length (nub ms) == 2
+  where
+    threes = tail $ sort ms
+
+-- Three Mixed Sequences
+isThreeMixedSequences :: [Meld] -> Tile -> Bool
+isThreeMixedSequences ms _ = undefined
 
 -- Seven Pairs
 isSevenPairs :: [Meld] -> Bool
 isSevenPairs melds = length (uniq melds) == 7
-
---   Standard p ms -> all ms isSequentialMeld
 
 -- Fu's
 -- Two-side Wait, if meld is open then return False

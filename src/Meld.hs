@@ -50,6 +50,21 @@ meldToTiles (Run t1 t2 t3 _) = [t1, t2, t3]
 meldToTiles (Triplet t1 t2 t3 _) = [t1, t2, t3]
 meldToTiles (Quad t1 t2 t3 t4 _) = [t1, t2, t3, t4]
 
+-- Extracts the number of the 1st tile in the meld
+meldToNumber :: Meld -> Maybe Int
+meldToNumber (Pair (Numeric n _) _) = Just n
+meldToNumber (Run (Numeric n _) _ _ _) = Just n
+meldToNumber (Triplet (Numeric n _) _ _ _) = Just n
+meldToNumber (Quad (Numeric n _) _ _ _ _) = Just n
+meldToNumber _ = Nothing -- non numeric tiles
+
+meldToSuit :: Meld -> Maybe Suit
+meldToSuit (Pair (Numeric _ s) _) = Just s
+meldToSuit (Run (Numeric _ s) _ _ _) = Just s
+meldToSuit (Triplet (Numeric _ s) _ _ _) = Just s
+meldToSuit (Quad (Numeric _ s) _ _ _ _) = Just s
+meldToSuit _ = Just Honor -- non numeric tiles
+
 isTileInMeld :: Tile -> Meld -> Bool
 isTileInMeld t m = t `elem` meldToTiles m
 
@@ -119,6 +134,11 @@ isClosedMeld m = case m of
   Run _ _ _ o -> not o
   Triplet _ _ _ o -> not o
   Quad _ _ _ _ o -> not o
+
+isClosedRun :: Meld -> Bool
+isClosedRun m = case m of
+  Run _ _ _ False -> True
+  _ -> False
 
 -- Meld without terminal tiles
 isTanyaoMeld :: Meld -> Bool
