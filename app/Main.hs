@@ -1,11 +1,11 @@
 module Main where
 
+import Data.Char (isAlphaNum)
 import Data.List (nub, sort)
 import Data.Maybe
 import Match
 import Meld
 import Parser
-import Parser (parseTiles)
 import Rule
 import Tile
 import Wall
@@ -30,9 +30,9 @@ hand6 =
 main :: IO ()
 main = do
   -- print $ fullWall
-  let testHand = hand6
-  let matchedHand = uniq $ sort $ map sort $ validMatches $ matchIntoMelds testHand
-  print matchedHand
+  -- let testHand = hand6
+  -- let matchedHand = uniq $ sort $ map sort $ validMatches $ matchIntoMelds testHand
+  -- print matchedHand
   -- print $ map (\ms -> isFullStraight ms (Numeric 9 Man)) matchedHand
 
   -- print $ (getSingleTile "1z", getSingleTile "2z", getSingleTile "3z", getSingleTile "4z")
@@ -40,10 +40,9 @@ main = do
   -- print $ groupByDigits "44556678p123s88m3p"
   -- print $ groupByDigits "45678p123s88m3p#C456p"
   -- print $ parse "45678p123s88m3p#C456p"
-  let p = groupByDigits "45678ps88m3p#C456p"
-  print p
-  let cs = groupTileStrings [] p
-  print cs
-  print $ parseTiles (fst cs)
+
+  let hand9 = parser "45678p123s88m3pC4#CpK456p"
+  print $ matchIntoMelds hand9
+  print $ uniq $ sort $ map sort $ validMatches $ matchIntoMelds hand9
 
 -- print $ isClosedHand $ fst hand2

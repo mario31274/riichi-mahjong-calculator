@@ -270,3 +270,13 @@ main = do
   print $ map (\ms -> isDoubleTwinSequences ms (Numeric 9 Man)) matchedHand1
   print $ map (\ms -> isTwinSequences ms (Numeric 9 Man)) matchedHand
   print $ fromEnum East
+
+
+  -- let p = groupByDigits "45678p123s88m3pC4#CpK456p"
+  -- print p
+  -- let cs = groupTileStrings [] p
+  -- print cs
+  -- print $ parseTiles (fst cs)
+  -- print $ groupMeldStrings (snd cs)
+
+  -- print $ groupTileAndMeldStrings "45678p123s88m3pC4#CpK456p"

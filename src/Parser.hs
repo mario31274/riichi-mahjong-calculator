@@ -9,42 +9,41 @@ import Wall
 sanitizeInputForTiles :: String -> String
 sanitizeInputForTiles = filter (`elem` ['1' .. '9'] ++ ['s', 'p', 'm', 'z', 'C', 'P', 'K', 'k'])
 
--- parseHand :: String -> Hand
--- parseHand s = do
---   let grouped = groupByDigits s
---   let (tiles, rest) = parseTilesByGroup [] grouped
---   let melds = parseTilesByGroup rest
---   -- return (tiles, melds)
---   return ([],[])
---   -- where
-parseTiles :: [[Char]] -> [Tile]
-parseTiles [] = []
-parseTiles (cs : css) =
-  case getSingleTile cs of
-    Just t -> t : parseTiles css
-    Nothing -> parseTiles css
+parser :: String -> Hand
+parser s =
+  let (tss, mss) = groupTileAndMeldStrings s
+   in (parseMaybe tss getSingleTile, parseMaybe mss getOpenedMeld)
 
--- parseMelds :: [[Char]] -> [Meld]
--- parseMelds [] = []
--- parseMelds (cs : css) =
---   case getSingleTile cs of
---     Just t -> t : parseMelds css
---     Nothing -> parseMelds css
+parseMaybe :: [[Char]] -> ([Char] -> Maybe a) -> [a]
+parseMaybe [] _ = []
+parseMaybe (cs : css) p =
+  case p cs of
+    Just m -> m : parseMaybe css p
+    Nothing -> parseMaybe css p
 
-groupTileStrings :: [String] -> [String] -> ([[Char]], [String])
-groupTileStrings s [] = (s, [])
-groupTileStrings s (numbers : suit : ss)
-  | not (all isDigit numbers) = (s, numbers : suit : ss)
-  | head suit `notElem` ['s', 'p', 'm', 'z'] = (s, suit : ss)
-  | otherwise = groupTileStrings (s ++ groupNumAndSuit numbers (head suit)) ss
+groupTileAndMeldStrings :: String -> ([String], [String])
+groupTileAndMeldStrings s =
+  let (tStrings, mStrings) = span isAlphaNum s
+   in (groupTileStrings (groupByDigits tStrings), groupMeldStrings (groupByDigits mStrings))
 
--- groupMeldStrings :: [String] -> [[Char]]
--- groupMeldStrings [] = []
--- groupMeldStrings (meldType : numbers : suit : ss)
---   | head meldType `notElem` ['C', 'P', 'K', 'k'] = groupMeldStrings ss
---   | not (isDigit $ head numbers) = groupMeldStrings ss
---   | head suit `notElem` ['s', 'p', 'm', 'z'] = groupMeldStrings ss
---   | otherwise = groupTileStrings (s ++ groupMeldNumAndSuit numbers (head suit)) ss
+groupTileStrings :: [String] -> [[Char]]
+groupTileStrings [] = []
+groupTileStrings (numbers : suit : ss)
+  | not (all isDigit numbers) = groupTileStrings (suit : ss)
+  | head suit `notElem` ['s', 'p', 'm', 'z'] = groupTileStrings (suit : ss)
+  | otherwise = groupNumAndSuit numbers (head suit) ++ groupTileStrings ss
+groupTileStrings (_ : _) = []
+
+groupMeldStrings :: [String] -> [[Char]]
+groupMeldStrings [] = []
+groupMeldStrings (meldType : numbers : suit : ss)
+  | head meldType `notElem` ['C', 'P', 'K', 'k']
+      || not (isDigit $ head numbers)
+      || head suit `notElem` ['s', 'p', 'm', 'z'] =
+      groupMeldStrings (numbers : suit : ss)
+  | otherwise = map head [meldType, numbers, suit] : groupMeldStrings ss
+groupMeldStrings (_ : _ : _) = []
+groupMeldStrings (_ : _) = []
 
 groupNumAndSuit :: String -> Char -> [String]
 groupNumAndSuit [] _ = []
@@ -65,7 +64,9 @@ groupByDigits = group
       | isDigit c =
           let (digits, rest) = span isDigit cs
            in (c : digits) : group rest
-      | isAlpha c = [c] : group cs
+      | isAlpha c =
+          let (digits, rest) = span isAlpha cs
+           in (c : digits) : group rest
       | otherwise = group cs
 
 -- Takes only 2 first char and return a tile
