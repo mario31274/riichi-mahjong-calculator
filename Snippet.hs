@@ -97,6 +97,99 @@ hand5 =
     []
   )
 
+hand7 :: Hand
+hand7 =
+  ( [ Numeric 2 Man,
+      Numeric 3 Man,
+      Numeric 4 Man,
+      Numeric 4 Man,
+      Numeric 5 Man,
+      Numeric 6 Man,
+      Numeric 6 Man,
+      Numeric 7 Man,
+      Numeric 8 Man,
+      Numeric 2 Sou,
+      Numeric 3 Sou,
+      Numeric 4 Sou,
+      Numeric 9 Sou,
+      Numeric 9 Sou
+    ],
+    []
+  )
+
+hand8 :: Hand
+hand8 =
+  ( [ Numeric 2 Man,
+      Numeric 3 Man,
+      Numeric 4 Man,
+      Numeric 2 Pin,
+      Numeric 3 Pin,
+      Numeric 4 Pin,
+      Numeric 2 Sou,
+      Numeric 3 Sou,
+      Numeric 4 Sou,
+      Numeric 1 Pin,
+      Numeric 1 Pin,
+      Numeric 1 Pin,
+      Wind South Honor,
+      Wind South Honor
+    ],
+    []
+  )
+
+hand8' :: Hand
+hand8' =
+  ( [ Numeric 2 Pin,
+      Numeric 3 Pin,
+      Numeric 4 Pin,
+      Numeric 2 Sou,
+      Numeric 3 Sou,
+      Numeric 4 Sou,
+      Numeric 1 Pin,
+      Numeric 1 Pin,
+      Numeric 1 Pin,
+      Wind South Honor,
+      Wind South Honor
+    ],
+    [Run (Numeric 2 Man) (Numeric 3 Man) (Numeric 4 Man) True]
+  )
+hand9 :: Hand
+hand9 =
+  ( [ Numeric 9 Man,
+      Numeric 9 Man,
+      Numeric 9 Man,
+      Numeric 2 Sou,
+      Numeric 3 Sou,
+      Numeric 4 Sou,
+      Numeric 5 Sou,
+      Numeric 6 Sou,
+      Numeric 7 Sou,
+      Numeric 8 Sou,
+      Numeric 9 Sou,
+      Numeric 1 Sou,
+      Dragon White Honor,
+      Dragon White Honor
+    ],
+    []
+  )
+
+hand9' :: Hand
+hand9' =
+  ( [ Numeric 9 Man,
+      Numeric 9 Man,
+      Numeric 9 Man,
+      Numeric 2 Sou,
+      Numeric 3 Sou,
+      Numeric 7 Sou,
+      Numeric 8 Sou,
+      Numeric 9 Sou,
+      Numeric 1 Sou,
+      Dragon White Honor,
+      Dragon White Honor
+    ],
+    [Run (Numeric 4 Sou) (Numeric 5 Sou) (Numeric 6 Sou) True]
+  )
+
 handThirteen :: Hand
 handThirteen =
   ( [ Numeric 1 Pin,

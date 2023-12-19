@@ -51,19 +51,20 @@ meldToTiles (Triplet t1 t2 t3 _) = [t1, t2, t3]
 meldToTiles (Quad t1 t2 t3 t4 _) = [t1, t2, t3, t4]
 
 -- Extracts the number of the 1st tile in the meld
-meldToNumber :: Meld -> Maybe Int
-meldToNumber (Pair (Numeric n _) _) = Just n
-meldToNumber (Run (Numeric n _) _ _ _) = Just n
-meldToNumber (Triplet (Numeric n _) _ _ _) = Just n
-meldToNumber (Quad (Numeric n _) _ _ _ _) = Just n
-meldToNumber _ = Nothing -- non numeric tiles
+numOfMeld :: Meld -> Maybe Int
+numOfMeld (Pair (Numeric n _) _) = Just n
+numOfMeld (Run (Numeric n _) _ _ _) = Just n
+numOfMeld (Triplet (Numeric n _) _ _ _) = Just n
+numOfMeld (Quad (Numeric n _) _ _ _ _) = Just n
+numOfMeld _ = Nothing -- non numeric tiles
 
-meldToSuit :: Meld -> Maybe Suit
-meldToSuit (Pair (Numeric _ s) _) = Just s
-meldToSuit (Run (Numeric _ s) _ _ _) = Just s
-meldToSuit (Triplet (Numeric _ s) _ _ _) = Just s
-meldToSuit (Quad (Numeric _ s) _ _ _ _) = Just s
-meldToSuit _ = Just Honor -- non numeric tiles
+-- Extracts the suid of the 1st tile in the meld
+suitOfMeld :: Meld -> Maybe Suit
+suitOfMeld (Pair (Numeric _ s) _) = Just s
+suitOfMeld (Run (Numeric _ s) _ _ _) = Just s
+suitOfMeld (Triplet (Numeric _ s) _ _ _) = Just s
+suitOfMeld (Quad (Numeric _ s) _ _ _ _) = Just s
+suitOfMeld _ = Just Honor -- non numeric tiles
 
 isTileInMeld :: Tile -> Meld -> Bool
 isTileInMeld t m = t `elem` meldToTiles m

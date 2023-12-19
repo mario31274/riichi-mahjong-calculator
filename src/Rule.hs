@@ -69,9 +69,9 @@ isDoubleTwinSequences ms _ =
 isThreeMixedSequences :: [Meld] -> Tile -> Bool
 isThreeMixedSequences ms _ = do
   let threes = tail $ sort ms
-  let souM = find (\y -> meldToSuit y == Just Sou) threes
-  let pinM = find (\y -> meldToSuit y == Just Pin) threes
-  let manM = find (\y -> meldToSuit y == Just Man) threes
+  let souM = find (\y -> suitOfMeld y == Just Sou) threes
+  let pinM = find (\y -> suitOfMeld y == Just Pin) threes
+  let manM = find (\y -> suitOfMeld y == Just Man) threes
   case souM of
     Just (Run s1 _ _ _) -> case pinM of
       Just (Run p1 _ _ _) -> case manM of
@@ -79,9 +79,23 @@ isThreeMixedSequences ms _ = do
       _ -> False
     _ -> False
 
+-- Full Straight
+isFullStraight :: [Meld] -> Tile -> Bool
+isFullStraight ms _ = do
+  let threes = tail $ sort ms
+  case find (\m -> numOfMeld m == Just 1) threes of
+    Just m ->
+      case find (\m' -> numOfMeld m' == Just 4 && suitOfMeld m == suitOfMeld m') threes of
+        Just m ->
+          case find (\m' -> numOfMeld m' == Just 7 && suitOfMeld m == suitOfMeld m') threes of
+            Just m -> True
+            _ -> False
+        _ -> False
+    _ -> False
+
 -- Seven Pairs
-isSevenPairs :: [Meld] -> Bool
-isSevenPairs melds = length (uniq melds) == 7
+isSevenPairs :: [Meld] -> Tile -> Bool
+isSevenPairs melds _ = length (uniq melds) == 7
 
 -- Fu's
 -- Two-side Wait, if meld is open then return False

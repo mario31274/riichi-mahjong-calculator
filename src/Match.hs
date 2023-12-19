@@ -43,7 +43,7 @@ match hand (Pair t1 t2) = do
 match hand _ = Nothing
 
 matchIntoMelds :: Hand -> [([Meld], [Tile])]
-matchIntoMelds (tiles, melds) = matchPattern (melds, tiles) patterns
+matchIntoMelds (tiles, melds) = matchPattern (melds, sort tiles) patterns
 
 matchPattern :: ([Meld], [Tile]) -> [[[Tile] -> Maybe (Meld, [Tile])]] -> [([Meld], [Tile])]
 matchPattern (melds, tiles) [] = []
