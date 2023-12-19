@@ -18,7 +18,7 @@ instance Show Meld where
     Triplet t1 t2 t3 True -> "Pon" ++ show (t1, t2, t3)
     Triplet t1 t2 t3 False -> show (t1, t2, t3)
     Quad t1 t2 t3 t4 True -> "Kan" ++ show (t1, t2, t3, t4)
-    Quad t1 t2 t3 t4 False -> "ClosedKan" ++ show (t1, t2, t3, t4)
+    Quad t1 t2 t3 t4 False -> "ClosedKan(\x1f02b," ++ show t2 ++ "," ++ show t3 ++ ",\x1f02b)"
 
 -- instance Ord Meld where
 --   compare :: Meld -> Meld -> Ordering

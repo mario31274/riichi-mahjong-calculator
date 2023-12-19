@@ -97,6 +97,18 @@ isFullStraight ms _ = do
 isSevenPairs :: [Meld] -> Tile -> Bool
 isSevenPairs melds _ = length (uniq melds) == 7
 
+-- All Triplets (not Four)
+
+-- Half Flush
+
+-- Full Flush
+
+-- All Honors
+
+-- All Terminals
+
+-- All Green
+
 -- Fu's
 -- Two-side Wait, if meld is open then return False
 -- (Winning tiles can't be inside an opened meld)

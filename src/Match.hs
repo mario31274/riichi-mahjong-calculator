@@ -7,13 +7,13 @@ import Meld
 import Tile
 import Wall
 
-data WinningHand = Standard [Meld] | SevenPairs [Meld] | ThirteenOrphans [Tile]
-  deriving (Eq, Show)
+-- data WinningHand = Standard [Meld] | SevenPairs [Meld] | ThirteenOrphans [Tile]
+--   deriving (Eq, Show)
 
-matchStandard :: Hand -> WinningHand
+-- matchStandard :: Hand -> WinningHand
 -- standard h = Standard pair m1++m2++m3++m4
 --   where m1
-matchStandard h = undefined
+-- matchStandard h = undefined
 
 pluck :: (Eq a) => a -> [a] -> Maybe [a]
 pluck x [] = Nothing
@@ -104,9 +104,9 @@ validMatches (match : matches) = case match of
   (m, []) -> m : validMatches matches
   _ -> validMatches matches
 
-findWinningTile :: WinningHand -> Tile -> Maybe Meld
-findWinningTile (Standard ms) = findTileInMelds ms
-findWinningTile (SevenPairs ps) = findTileInMelds ps
+-- findWinningTile :: WinningHand -> Tile -> Maybe Meld
+-- findWinningTile (Standard ms) = findTileInMelds ms
+-- findWinningTile (SevenPairs ps) = findTileInMelds ps
 
 findTileInMelds :: [Meld] -> Tile -> Maybe Meld
 findTileInMelds [] _ = Nothing

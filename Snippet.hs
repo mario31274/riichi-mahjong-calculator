@@ -258,3 +258,15 @@ main = do
   print $ map length matchedHand1
   print $ map (length . nub) matchedHand1
   print $ map (\ms -> length ms - 2 == length (nub ms) - 2) matchedHand1
+
+  print $ isAllSimple (head matchedHand) (Numeric 1 Sou)
+
+  print $ map (\m -> isTwoSideWait m (Numeric 3 Man)) (head matchedHand)
+  print $ isTwoSideWait (Run (Numeric 1 Man) (Numeric 2 Man) (Numeric 3 Man) False) (Numeric 3 Man)
+  print $ isTwoSideWait (Run (Numeric 1 Man) (Numeric 2 Man) (Numeric 3 Man) False) (Numeric 1 Man)
+  let matchedHand1 = uniq $ sort $ map sort $ validMatches $ matchIntoMelds hand1
+  print matchedHand1
+  print $ map (\ms -> isTwinSequences ms (Numeric 9 Man)) matchedHand1
+  print $ map (\ms -> isDoubleTwinSequences ms (Numeric 9 Man)) matchedHand1
+  print $ map (\ms -> isTwinSequences ms (Numeric 9 Man)) matchedHand
+  print $ fromEnum East
