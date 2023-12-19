@@ -1,7 +1,7 @@
 module Player where
 
+import Hand
 import Tile
-import Wall
 
 data Player = Player
   { score :: Int,

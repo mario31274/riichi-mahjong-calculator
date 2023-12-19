@@ -1,11 +1,10 @@
-module Match where
+module Hand where
 
 import Control.Applicative
 import Data.List
 import Data.Maybe (fromMaybe)
 import Meld
 import Tile
-import Wall
 
 -- data WinningHand = Standard [Meld] | SevenPairs [Meld] | ThirteenOrphans [Tile]
 --   deriving (Eq, Show)
@@ -14,6 +13,8 @@ import Wall
 -- standard h = Standard pair m1++m2++m3++m4
 --   where m1
 -- matchStandard h = undefined
+
+type Hand = ([Tile], [Meld])
 
 pluck :: (Eq a) => a -> [a] -> Maybe [a]
 pluck x [] = Nothing

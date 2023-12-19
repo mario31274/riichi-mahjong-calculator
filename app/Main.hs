@@ -3,7 +3,7 @@ module Main where
 import Data.Char (isAlphaNum)
 import Data.List (nub, sort)
 import Data.Maybe
-import Match
+import Hand
 import Meld
 import Parser
 import Rule
@@ -41,7 +41,7 @@ main = do
   -- print $ groupByDigits "45678p123s88m3p#C456p"
   -- print $ parse "45678p123s88m3p#C456p"
 
-  let hand9 = parser "45678p123s88m3pC4#CpK456p"
+  let hand9 = parser "45678p123s88m3pC4#K456p"
   print $ matchIntoMelds hand9
   print $ uniq $ sort $ map sort $ validMatches $ matchIntoMelds hand9
 

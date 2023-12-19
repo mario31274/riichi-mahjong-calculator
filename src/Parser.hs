@@ -1,18 +1,18 @@
 module Parser where
 
 import Data.Char
+import Hand
 import Meld
 import Tile
-import Wall
 
 -- sanitize the input (Ns=Sou, Np=Pin, Nm=Man, Nz=Honor, CNx=Chi Meld, PNx=Pon Meld, KNx=Kan Meld, kNx=Closed Kan Meld)
-sanitizeInputForTiles :: String -> String
-sanitizeInputForTiles = filter (`elem` ['1' .. '9'] ++ ['s', 'p', 'm', 'z', 'C', 'P', 'K', 'k'])
-
 parser :: String -> Hand
 parser s =
   let (tss, mss) = groupTileAndMeldStrings s
    in (parseMaybe tss getSingleTile, parseMaybe mss getOpenedMeld)
+
+sanitizeInputForTiles :: String -> String
+sanitizeInputForTiles = filter (`elem` ['1' .. '9'] ++ ['s', 'p', 'm', 'z', 'C', 'P', 'K', 'k', '#', ' ', '|'])
 
 parseMaybe :: [[Char]] -> ([Char] -> Maybe a) -> [a]
 parseMaybe [] _ = []

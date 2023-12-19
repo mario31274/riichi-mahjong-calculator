@@ -2,7 +2,7 @@ module Rule where
 
 import Data.List
 import Data.Maybe
-import Match
+import Hand
 import Meld
 import Tile
 import Wall

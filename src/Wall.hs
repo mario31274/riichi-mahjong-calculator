@@ -7,8 +7,6 @@ import Meld
 import System.Random
 import Tile
 
-type Hand = ([Tile], [Meld])
-
 type Wall = [Tile]
 
 data Indexed i a = Index {index :: i, item :: a}
