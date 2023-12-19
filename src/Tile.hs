@@ -88,6 +88,7 @@ isTerminalTile :: Tile -> Bool
 isTerminalTile t = not $ isNonTerminalTile t
 
 instance Show Suit where
+  show :: Suit -> String
   show suit = case suit of
     Sou -> "s"
     Pin -> "p"
@@ -95,6 +96,7 @@ instance Show Suit where
     Honor -> "z"
 
 instance Show Tile where
+  show :: Tile -> String
   show = unicodeShow
 
 unicodeShow :: Tile -> String
@@ -117,24 +119,17 @@ asciiShow :: Tile -> String
 asciiShow tile =
   case tile of
     Numeric n suit -> show n ++ show suit
-    Wind wind suit ->
-      ( case wind of
-          East -> "1"
-          South -> "2"
-          West -> "3"
-          North -> "4"
-      )
-        ++ show suit
-    Dragon dragon suit ->
-      ( case dragon of
-          White -> "5"
-          Green -> "6"
-          Red -> "7"
-      )
-        ++ show suit
+    Wind wind suit -> show (numOf tile) ++ show suit
+    Dragon dragon suit -> show (numOf tile) ++ show suit
 
 suitOf :: Tile -> Suit
 suitOf tile = case tile of
   Numeric _ suit -> suit
   Wind _ suit -> suit
   Dragon _ suit -> suit
+
+numOf :: Tile -> Int
+numOf tile = case tile of
+  Numeric n _ -> n
+  Wind w _ -> fromEnum w + 1
+  Dragon d _ -> fromEnum d + 5

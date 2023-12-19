@@ -34,6 +34,3 @@ shuffledWall = do
   seed <- newStdGen
   let rand = randoms seed
   return (shuffle rand fullWall)
-
-sortTiles :: [Tile] -> [Tile]
-sortTiles = sort

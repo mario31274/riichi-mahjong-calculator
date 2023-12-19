@@ -1,6 +1,7 @@
 module Rule where
 
 import Data.List
+import Data.Maybe
 import Match
 import Meld
 import Tile
@@ -37,15 +38,15 @@ isAllSimple ms _ = all (all isNonTerminalTile . meldToTiles) ms
 isPinfu :: [Meld] -> Tile -> Bool
 isPinfu ms wt = do
   let threes = tail $ sort ms
-  let winningMeld = findTileInMelds ms wt
+  let winningMeld = findTileInMelds threes wt
   case winningMeld of
-    Just (Run t1 t2 t3 False) -> helper threes && isTwoSideWait (Run t1 t2 t3 False) wt
+    Just (Run t1 t2 t3 False) -> isAllRuns threes && isTwoSideWait (Run t1 t2 t3 False) wt
     _ -> False
   where
-    helper :: [Meld] -> Bool
-    helper [] = True
-    helper (m : ms) = case m of
-      Run _ _ _ _ -> helper ms
+    isAllRuns :: [Meld] -> Bool
+    isAllRuns [] = True
+    isAllRuns (m : ms) = case m of
+      Run _ _ _ _ -> isAllRuns ms
       _ -> False
 
 -- Twin Sequences
@@ -66,7 +67,17 @@ isDoubleTwinSequences ms _ =
 
 -- Three Mixed Sequences
 isThreeMixedSequences :: [Meld] -> Tile -> Bool
-isThreeMixedSequences ms _ = undefined
+isThreeMixedSequences ms _ = do
+  let threes = tail $ sort ms
+  let souM = find (\y -> meldToSuit y == Just Sou) threes
+  let pinM = find (\y -> meldToSuit y == Just Pin) threes
+  let manM = find (\y -> meldToSuit y == Just Man) threes
+  case souM of
+    Just (Run s1 _ _ _) -> case pinM of
+      Just (Run p1 _ _ _) -> case manM of
+        Just (Run m1 _ _ _) -> numOf s1 == numOf p1 && numOf p1 == numOf m1
+      _ -> False
+    _ -> False
 
 -- Seven Pairs
 isSevenPairs :: [Meld] -> Bool

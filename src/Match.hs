@@ -21,6 +21,12 @@ pluck x (y : ys)
   | x == y = Just ys
   | otherwise = fmap (y :) (pluck x ys)
 
+pluckBy :: (Eq a) => (a -> a -> Bool) -> a -> [a] -> Maybe [a]
+pluckBy f x [] = Nothing
+pluckBy f x (y : ys)
+  | f x y = Just ys
+  | otherwise = fmap (y :) (pluck x ys)
+
 match :: [Tile] -> Meld -> Maybe [Tile]
 match [] _ = Nothing
 match hand (Run t1 t2 t3 _) = do
