@@ -17,15 +17,6 @@ uniq = map head . group
 isThirteenOrphans :: Hand -> Bool
 isThirteenOrphans (tiles, _) = all isTerminalTile tiles && length (uniq $ sort tiles) == 13
 
-isValidWinningHand :: Hand -> Bool
-isValidWinningHand (ts, ms)
-  | null ms = length ts == 14
-  | length ms == 1 = length ts == 11
-  | length ms == 2 = length ts == 8
-  | length ms == 3 = length ts == 5
-  | length ms == 4 = length ts == 2
-  | otherwise = False
-
 -- Yakus
 isClosedHand :: [Meld] -> Tile -> Bool
 isClosedHand ms _ = all isClosedMeld ms

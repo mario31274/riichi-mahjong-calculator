@@ -16,6 +16,13 @@ import Tile
 
 type Hand = ([Tile], [Meld])
 
+data WinningHand = WinningHand
+  { hand :: [Meld],
+    winningTile :: Tile,
+    winningMeld :: Meld
+  }
+  deriving (Show)
+
 pluck :: (Eq a) => a -> [a] -> Maybe [a]
 pluck x [] = Nothing
 pluck x (y : ys)
@@ -105,12 +112,48 @@ validMatches (match : matches) = case match of
   (m, []) -> m : validMatches matches
   _ -> validMatches matches
 
--- findWinningTile :: WinningHand -> Tile -> Maybe Meld
--- findWinningTile (Standard ms) = findTileInMelds ms
--- findWinningTile (SevenPairs ps) = findTileInMelds ps
-
 findTileInMelds :: [Meld] -> Tile -> Maybe Meld
 findTileInMelds [] _ = Nothing
 findTileInMelds (m : ms) t
   | t `isTileInMeld` m = Just m
   | otherwise = findTileInMelds ms t
+
+isValidWinningHand :: Hand -> Bool
+isValidWinningHand (ts, ms)
+  | not $ noTilesMoreThanFour (ts, ms) = False
+  | null ms = length ts == 14
+  | length ms == 1 = length ts == 11
+  | length ms == 2 = length ts == 8
+  | length ms == 3 = length ts == 5
+  | length ms == 4 = length ts == 2
+  | otherwise = False
+
+noTilesMoreThanFour :: Hand -> Bool
+noTilesMoreThanFour (ts, ms) = do
+  let allTiles = ts ++ concatMap meldToTiles ms
+   in all (\x -> length x <= 4) (group (sort allTiles))
+
+getWinHandsByWinTile :: Hand -> Tile -> [WinningHand]
+getWinHandsByWinTile hand tile
+  | not $ isValidWinningHand hand = []
+  | otherwise =
+      let mss = validMatches (matchIntoMelds hand)
+          f = findWinningMelds mss tile
+       in map (\(ms, wm) -> initWinningHand ms wm tile) f
+  where
+    initWinningHand :: [Meld] -> Meld -> Tile -> WinningHand
+    initWinningHand ms wm t = WinningHand {hand = ms, winningMeld = wm, winningTile = t}
+
+findWinningMelds :: [[Meld]] -> Tile -> [([Meld], Meld)]
+findWinningMelds (ms : mss) t =
+  let threesFirst = tail ms ++ [head ms]
+   in findWinningMelds' (threesFirst : ms : mss) t
+
+-- find the winning melds among winning hands with a win tile, ideally in closed melds
+-- only return first occurrence
+findWinningMelds' :: [[Meld]] -> Tile -> [([Meld], Meld)]
+findWinningMelds' [] _ = []
+findWinningMelds' (ms : mss) t = case findTileInMelds ms t of
+  Just m ->
+    (ms, m) : findWinningMelds' mss t
+  Nothing -> findWinningMelds' mss t

@@ -1,6 +1,5 @@
 module Main where
 
-import Data.Char (isAlphaNum)
 import Data.List (nub, sort)
 import Data.Maybe
 import Hand
@@ -41,8 +40,17 @@ main = do
   -- print $ groupByDigits "45678p123s88m3p#C456p"
   -- print $ parse "45678p123s88m3p#C456p"
 
-  let hand9 = parser "45678p123s88m3pC4#K456p"
-  print $ matchIntoMelds hand9
-  print $ uniq $ sort $ map sort $ validMatches $ matchIntoMelds hand9
+  -- let hand9 = parser "45678p123s88m3pC4#K456p"
+  -- print $ matchIntoMelds hand9
+  -- print $ uniq $ sort $ map sort $ validMatches $ matchIntoMelds hand9
+  -- print $ isValidWinningHand hand9
+  let handS1 = "22233344455566m"
+  let handS2 = "12345666777888p"
+  let hand = parser handS2
+  -- let mss = uniq $ sort $ map sort $ validMatches $ matchIntoMelds hand
+  -- print mss
+  -- let found = findWinningMelds' mss (Numeric 6 Pin)
+  -- print found
+  print $ getWinHandsByWinTile hand (Numeric 6 Pin)
 
 -- print $ isClosedHand $ fst hand2

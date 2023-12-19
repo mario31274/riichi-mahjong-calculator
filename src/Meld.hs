@@ -120,15 +120,6 @@ isAllSame :: (Eq a) => [a] -> Bool
 isAllSame (x : xs) = all (== x) xs
 isAllSame _ = False
 
--- Function to check if a hand has a pair
--- hasPair :: [Tile] -> Bool
--- hasPair tiles = any (uncurry (==)) $ pairs tiles
---   where
---     pairs :: [a] -> [(a, a)]
---     pairs [] = []
---     pairs [_] = []
---     pairs (x : y : xs) = (x, y) : pairs xs
-
 isClosedMeld :: Meld -> Bool
 isClosedMeld m = case m of
   Pair _ _ -> True
