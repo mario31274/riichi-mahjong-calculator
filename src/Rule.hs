@@ -11,6 +11,10 @@ data WinningHand = WinningHand
     winningTile :: Tile,
     winningMeld :: Meld,
     isTsumo :: Bool,
+    isRiichi :: Bool,
+    isIppatsu :: Bool,
+    roundWind :: Wind,
+    selfWind :: Wind,
     dora :: Int
   }
   deriving (Show, Ord, Eq)
@@ -22,27 +26,29 @@ defaultWH =
       winningTile = Default,
       winningMeld = Triplet Default Default Default False,
       isTsumo = False,
+      isRiichi = False,
+      isIppatsu = False,
+      roundWind = East,
+      selfWind = East,
       dora = 0
     }
-
--- The two metrics for calculating final score
-type HanFu = (Int, Int)
 
 -- copy-pasted from Data.List.Unique module by Volodymyr Yashchenko
 uniq :: (Eq b) => [b] -> [b]
 uniq = map head . group
 
--- Yakus (Scoring Rules)
 isClosedHand :: WinningHand -> Bool
 isClosedHand w = all isClosedMeld (hand w)
+
+-- Yakus (Scoring Rules)
 
 -- Seven Pairs
 isSevenPairs :: WinningHand -> Bool
 isSevenPairs w = length (uniq (hand w)) == 7
 
--- Pinfu / No-points hand  (closed or opened)
-isPinfu :: WinningHand -> Bool
-isPinfu w =
+-- No-points hand  (closed or opened)
+isNoPointsHand :: WinningHand -> Bool
+isNoPointsHand w =
   let threes = tail $ sort $ hand w
    in case winningMeld w of
         (Run t1 t2 t3 False) ->
@@ -74,17 +80,20 @@ isDoubleTwinSequences w =
 
 -- Three Mixed Sequences
 isThreeMixedSequences :: WinningHand -> Bool
-isThreeMixedSequences w = do
-  let threes = filter3TileMelds $ hand w
-  let souM = find (\y -> suitOfMeld y == Just Sou) threes
-  let pinM = find (\y -> suitOfMeld y == Just Pin) threes
-  let manM = find (\y -> suitOfMeld y == Just Man) threes
-  case souM of
-    Just (Run s1 _ _ _) -> case pinM of
-      Just (Run p1 _ _ _) -> case manM of
-        Just (Run m1 _ _ _) -> numOf s1 == numOf p1 && numOf p1 == numOf m1
-      _ -> False
-    _ -> False
+isThreeMixedSequences w =
+  let runs = filterRunMelds $ hand w
+      souM = find (\y -> suitOfMeld y == Sou) runs
+      pinM = find (\y -> suitOfMeld y == Pin) runs
+      manM = find (\y -> suitOfMeld y == Man) runs
+   in case souM of
+        Just (Run s1 _ _ _) -> case pinM of
+          Just (Run p1 _ _ _) -> case manM of
+            Just (Run m1 _ _ _) ->
+              numOf s1 == numOf p1
+                && numOf p1 == numOf m1
+            _ -> False
+          _ -> False
+        _ -> False
 
 -- Full Straight
 isFullStraight :: WinningHand -> Bool
@@ -110,15 +119,34 @@ isAllTripletsYaku w =
 isThreeClosedTriplets :: WinningHand -> Bool
 isThreeClosedTriplets w =
   let triplets = filterTripletOrQuadMelds $ hand w
-   in length triplets == 3 && all isClosedMeld triplets
+   in (length triplets == 3 && all isClosedMeld triplets)
+        || ( length triplets == 4
+               && not (isPair (winningMeld w))
+               && not (isTsumo w)
+           )
 
 -- Three Mixed Triplets
 isThreeMixedTriplets :: WinningHand -> Bool
-isThreeMixedTriplets w = undefined
+isThreeMixedTriplets w =
+  let triplets = filterTripletMelds $ hand w
+      souM = find (\y -> suitOfMeld y == Sou) triplets
+      pinM = find (\y -> suitOfMeld y == Pin) triplets
+      manM = find (\y -> suitOfMeld y == Man) triplets
+   in case souM of
+        Just (Triplet s1 _ _ _) -> case pinM of
+          Just (Triplet p1 _ _ _) -> case manM of
+            Just (Triplet m1 _ _ _) ->
+              numOf s1 == numOf p1
+                && numOf p1 == numOf m1
+            _ -> False
+          _ -> False
+        _ -> False
 
 -- Three Quads
 isThreeQuads :: WinningHand -> Bool
-isThreeQuads w = undefined
+isThreeQuads w =
+  let quads = filterQuadMelds $ hand w
+   in length quads == 3
 
 -- All simple
 isAllSimple :: WinningHand -> Bool
@@ -126,43 +154,88 @@ isAllSimple w = all (all isNonTerminalTile . meldToTiles) (hand w)
 
 -- Honor Tiles
 isHonorTiles :: WinningHand -> Bool
-isHonorTiles w = undefined
+isHonorTiles w =
+  let quads = filterTripletOrQuadMelds $ hand w
+   in any isHonorMeld quads
+
+-- returns the list of honor tiles that led to the Honor Tiles Yaku
+getHonorTiles :: WinningHand -> [Tile]
+getHonorTiles w =
+  if isHonorTiles w
+    then
+      ( let quads = filterTripletOrQuadMelds $ hand w
+         in concatMap
+              ( \m -> ([head (meldToTiles m) | suitOfMeld m == Honor])
+              )
+              quads
+      )
+    else []
 
 -- Common Ends
 isCommonEnds :: WinningHand -> Bool
-isCommonEnds w = undefined
+isCommonEnds w =
+  all isTerminalOrHonorMeld (hand w)
 
 -- Common Terminals
 isCommonTerminals :: WinningHand -> Bool
-isCommonTerminals w = undefined
+isCommonTerminals w =
+  all isTerminalMeld (hand w)
+    && not (any isHonorMeld (hand w))
 
 -- All Terminals and Honors
 isAllTerminalsAndHonors :: WinningHand -> Bool
-isAllTerminalsAndHonors w = undefined
+isAllTerminalsAndHonors w =
+  (all isTripletOrQuad (filter3TileMelds (hand w)) || all isPair (hand w))
+    && all isTerminalOrHonorMeld (hand w)
 
 -- Little Three Dragons
 isLittleThreeDragons :: WinningHand -> Bool
-isLittleThreeDragons w = undefined
+isLittleThreeDragons w =
+  let honorMs = filter isDragonMeld (hand w)
+   in length (filter isPair honorMs) == 1
+        && length (filter isTripletOrQuad honorMs) == 2
 
 -- Half Flush
 isHalfFlush :: WinningHand -> Bool
-isHalfFlush w = undefined
+isHalfFlush w =
+  let melds = map suitOfMeld (hand w)
+   in length (nub $ filter (`elem` [Sou, Pin, Man]) melds) == 1
+        && elem Honor melds
 
 -- Full Flush
 isFullFlush :: WinningHand -> Bool
-isFullFlush w = undefined
+isFullFlush w =
+  let melds = map suitOfMeld (hand w)
+   in length (nub $ filter (`elem` [Sou, Pin, Man]) melds) == 1
 
 -- Thirteen Orphans
 isThirteenOrphans :: [Tile] -> Bool
-isThirteenOrphans tiles = all isTerminalTile tiles && length (uniq $ sort tiles) == 13
+isThirteenOrphans tiles =
+  all isTerminalOrHonorTile tiles
+    && length (uniq $ sort tiles) == 13
+
+-- Thirteen Orphans 13-wait
+isThirteenOrphans13Waits :: [Tile] -> Bool
+isThirteenOrphans13Waits tiles =
+  all isTerminalOrHonorTile tiles
+    && length (uniq $ sort tiles) == 13
 
 -- Four Concealed Triplets
 isFourClosedTriplets :: WinningHand -> Bool
-isFourClosedTriplets w = undefined
+isFourClosedTriplets w =
+  let triplets = filterTripletOrQuadMelds $ hand w
+   in length triplets == 4
+        && all isClosedMeld triplets
+        && not (isPair (winningMeld w))
+        && isTsumo w
 
 -- Four Concealed Triplets Single Wait
 isFourClosedTripletsSingleWait :: WinningHand -> Bool
-isFourClosedTripletsSingleWait w = undefined
+isFourClosedTripletsSingleWait w =
+  let triplets = filterTripletOrQuadMelds $ hand w
+   in length triplets == 4
+        && all isClosedMeld triplets
+        && isPair (winningMeld w)
 
 -- Big Three Dragons
 isBigThreeDragons :: WinningHand -> Bool
@@ -195,6 +268,12 @@ isNineGates w = undefined
 -- Nine Gates 9-wait
 isNineGates9Waits :: WinningHand -> Bool
 isNineGates9Waits w = undefined
+
+-- Four Quads
+isFourQuads :: WinningHand -> Bool
+isFourQuads w =
+  let quads = filterQuadMelds $ hand w
+   in length quads == 4
 
 -----------
 -- Fu Related

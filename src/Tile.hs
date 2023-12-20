@@ -87,10 +87,26 @@ isNonTerminalTile (Numeric n _)
 isNonTerminalTile _ = False
 
 isTerminalTile :: Tile -> Bool
-isTerminalTile t = not $ isNonTerminalTile t
+isTerminalTile (Numeric n _)
+  | n == 1 || n == 9 = True
+  | otherwise = False
+isTerminalTile _ = False
+
+isTerminalOrHonorTile :: Tile -> Bool
+isTerminalOrHonorTile t = not $ isNonTerminalTile t
 
 isHonorTile :: Tile -> Bool
 isHonorTile t = suitOf t == Honor
+
+isDragonTile :: Tile -> Bool
+isDragonTile t = case t of
+  Dragon _ -> True
+  _ -> False
+
+isWindTile :: Tile -> Bool
+isWindTile t = case t of
+  Wind _ -> True
+  _ -> False
 
 instance Show Suit where
   show :: Suit -> String
