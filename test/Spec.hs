@@ -84,6 +84,9 @@ main = hspec do
         let hand = parser "789m1233458p8p333s"
         let sorted = parser "333s12334588p789m"
         sort (fst hand) `shouldBe` fst sorted
+        let hand2 = parser "789m88p333s222666z"
+        let sorted2 = parser "333s88p789m222666z"
+        sort (fst hand2) `shouldBe` fst sorted2
     describe "pluck" do
       it "should only take one tile away" do
         property $ forAll anyTilesOf14 $ \(h : hs) -> do
@@ -361,6 +364,6 @@ hand3 =
     ],
     [ Run (Numeric 2 Man) (Numeric 3 Man) (Numeric 4 Man) True,
       Triplet (Numeric 2 Sou) (Numeric 2 Sou) (Numeric 2 Sou) True,
-      Quad (Wind South Honor) (Wind South Honor) (Wind South Honor) (Wind South Honor) True
+      Quad (Wind South) (Wind South) (Wind South) (Wind South) True
     ]
   )

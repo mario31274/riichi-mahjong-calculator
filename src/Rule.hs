@@ -10,12 +10,20 @@ data WinningHand = WinningHand
   { hand :: [Meld],
     winningTile :: Tile,
     winningMeld :: Meld,
-    isTsumo :: Bool
+    isTsumo :: Bool,
+    dora :: Int
   }
   deriving (Show)
 
 defaultWH :: WinningHand
-defaultWH = WinningHand {hand = [], winningTile = Numeric {}, winningMeld = [], isTsumo = False}
+defaultWH =
+  WinningHand
+    { hand = [],
+      winningTile = Default,
+      winningMeld = Triplet Default Default Default False,
+      isTsumo = False,
+      dora = 0
+    }
 
 -- The two metrics for calculating final score
 type HanFu = (Int, Int)
@@ -136,18 +144,18 @@ isOneSideWait _ _ = False
 
 isDragonPair :: Meld -> Bool
 isDragonPair (Pair t1 _) = case t1 of
-  (Dragon _ _) -> True
+  (Dragon _) -> True
   _ -> False
 isDragonPair _ = False
 
 isWindPair :: Meld -> Bool
 isWindPair (Pair t1 _) = case t1 of
-  (Wind _ _) -> True
+  (Wind _) -> True
   _ -> False
 isWindPair _ = False
 
 isSelfWindPair :: Meld -> Wind -> Bool
 isSelfWindPair (Pair t1 _) wind = case t1 of
-  (Wind w _) -> w == wind
+  (Wind w) -> w == wind
   _ -> False
 isSelfWindPair _ _ = False

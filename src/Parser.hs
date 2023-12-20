@@ -79,8 +79,8 @@ getSingleTile (c1 : c2 : rest)
   | c2 == 's' && c1 `elem` ['1' .. '9'] = Just (Numeric (ord c1 - ord '0') Sou)
   | c2 == 'p' && c1 `elem` ['1' .. '9'] = Just (Numeric (ord c1 - ord '0') Pin)
   | c2 == 'm' && c1 `elem` ['1' .. '9'] = Just (Numeric (ord c1 - ord '0') Man)
-  | c2 == 'z' && c1 `elem` ['1' .. '4'] = Just (Wind (toEnum ((ord c1 - ord '0') - 1)) Honor)
-  | c2 == 'z' && c1 `elem` ['5' .. '7'] = Just (Dragon (toEnum ((ord c1 - ord '0' - 4) - 1)) Honor)
+  | c2 == 'z' && c1 `elem` ['1' .. '4'] = Just (Wind (toEnum ((ord c1 - ord '0') - 1)))
+  | c2 == 'z' && c1 `elem` ['5' .. '7'] = Just (Dragon (toEnum ((ord c1 - ord '0' - 4) - 1)))
   | otherwise = Nothing
 getSingleTile _ = Nothing
 

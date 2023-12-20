@@ -20,8 +20,8 @@ hand6 =
       Numeric 8 Sou,
       Numeric 9 Sou,
       Numeric 1 Sou,
-      Dragon White Honor,
-      Dragon White Honor
+      Dragon White,
+      Dragon White
     ],
     [Run (Numeric 4 Sou) (Numeric 5 Sou) (Numeric 6 Sou) True]
   )

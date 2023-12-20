@@ -3,7 +3,6 @@
 module Tile where
 
 import Data.Char
-import Numeric (showHex)
 
 data Suit = Sou | Pin | Man | Honor
   deriving (Eq, Ord)
@@ -20,7 +19,7 @@ data Wind = East | South | West | North
 data Dragon = White | Green | Red
   deriving (Eq, Enum, Bounded, Ord)
 
-data Tile = Numeric Int Suit | Wind Wind Suit | Dragon Dragon Suit
+data Tile = Numeric Int Suit | Wind Wind | Dragon Dragon | Default
   deriving (Eq)
 
 instance Ord Tile where
@@ -31,12 +30,16 @@ instance Ord Tile where
     | s1 == s2 && n1 > n2 = GT
     | s1 < s2 = LT
     | otherwise = GT
-  compare (Wind w1 _) (Wind w2 _) = compare w1 w2
-  compare (Dragon d1 _) (Dragon d2 _) = compare d1 d2
+  compare (Wind w1) (Wind w2) = compare w1 w2
+  compare (Dragon d1) (Dragon d2) = compare d1 d2
   compare (Numeric _ _) _ = LT
-  compare (Wind _ _) (Dragon _ _) = LT
-  compare (Wind _ _) (Numeric _ _) = GT
-  compare (Dragon _ _) _ = GT
+  compare (Wind _) (Numeric _ _) = GT
+  compare (Wind _) (Dragon _) = LT
+  compare (Wind _) Default = LT
+  compare (Dragon _) (Wind _) = GT
+  compare (Dragon _) Default = LT
+  compare _ Default = LT
+  compare Default _ = GT
 
 numeric :: Int -> Suit -> Tile
 numeric n suit
@@ -54,10 +57,10 @@ dragons :: [Dragon]
 dragons = [White ..]
 
 wind :: Wind -> Tile
-wind w = Wind w Honor
+wind = Wind
 
 dragon :: Dragon -> Tile
-dragon d = Dragon d Honor
+dragon = Dragon
 
 nextNumeric :: Tile -> Maybe Tile
 nextNumeric (Numeric n s)
@@ -70,8 +73,8 @@ cycleNext t = case t of
   Numeric n s
     | n >= 1 || n <= 8 -> Numeric (n + 1) s
     | otherwise -> Numeric 1 s
-  Wind w s -> Wind (succ' w) s
-  Dragon d s -> Dragon (succ' d) s
+  Wind w -> Wind (succ' w)
+  Dragon d -> Dragon (succ' d)
 
 succ' :: (Bounded a, Eq a, Enum a) => a -> a
 succ' n
@@ -105,31 +108,33 @@ unicodeShow tile = case tile of
     Sou -> [chr (0x1f00f + n)]
     Pin -> [chr (0x1f018 + n)]
     Man -> [chr (0x1f006 + n)]
-  Wind wind _ -> case wind of
+  Wind wind -> case wind of
     East -> "\x1f000"
     South -> "\x1f001"
     West -> "\x1f002"
     North -> "\x1f003"
-  Dragon dragon _ -> case dragon of
+  Dragon dragon -> case dragon of
     White -> "\x1f006"
     Green -> "\x1f005"
     Red -> "\x1f004"
+  _ -> "\x1f02b"
 
 asciiShow :: Tile -> String
 asciiShow tile =
   case tile of
     Numeric n suit -> show n ++ show suit
-    Wind wind suit -> show (numOf tile) ++ show suit
-    Dragon dragon suit -> show (numOf tile) ++ show suit
+    Wind w -> show (numOf tile) ++ show (suitOf $ Wind w)
+    Dragon d -> show (numOf tile) ++ show (suitOf $ Dragon d)
+    _ -> "??"
 
 suitOf :: Tile -> Suit
 suitOf tile = case tile of
   Numeric _ suit -> suit
-  Wind _ suit -> suit
-  Dragon _ suit -> suit
+  Wind _ -> Honor
+  Dragon _ -> Honor
 
 numOf :: Tile -> Int
 numOf tile = case tile of
   Numeric n _ -> n
-  Wind w _ -> fromEnum w + 1
-  Dragon d _ -> fromEnum d + 5
+  Wind w -> fromEnum w + 1
+  Dragon d -> fromEnum d + 5
