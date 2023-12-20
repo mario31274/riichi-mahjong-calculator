@@ -49,7 +49,9 @@ main = do
   let handS2 = "12345667778886p"
   let handS3 = "24m556677p999s66z3m"
   let handS4 = "33m333p678p333s33z3m"
-  let hand = parse handS4
+  let handS5 = "11123445679998m"
+
+  let hand = parse handS5
 
   -- let mss = uniq $ sort $ map sort $ validMatches $ matchIntoMelds hand
   -- print mss

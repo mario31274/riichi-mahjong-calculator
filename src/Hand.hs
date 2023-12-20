@@ -33,6 +33,8 @@ match hand (Triplet t1 t2 t3 _) = do
 match hand (Pair t1 t2) = do
   h1 <- pluck t1 hand
   pluck t2 h1
+match hand (Single t) = do
+  pluck t hand
 match hand _ = Nothing
 
 matchIntoMelds :: Hand -> [([Meld], [Tile])]
@@ -62,7 +64,8 @@ patterns =
     [match3', match3', matchPair, match3', match3'],
     [match3', match3', match3', matchPair, match3'],
     [match3', match3', match3', match3', matchPair],
-    [matchPair, matchPair, matchPair, matchPair, matchPair, matchPair, matchPair]
+    [matchPair, matchPair, matchPair, matchPair, matchPair, matchPair, matchPair],
+    [match13, match13, match13, match13, match13, match13, match13, match13, match13, match13, match13, match13, match13]
   ]
 
 match3 :: [Tile] -> Maybe (Meld, [Tile])
@@ -70,6 +73,9 @@ match3 ts = matchRun ts <|> matchTriplet ts
 
 match3' :: [Tile] -> Maybe (Meld, [Tile])
 match3' ts = matchTriplet ts <|> matchRun ts
+
+match13 :: [Tile] -> Maybe (Meld, [Tile])
+match13 ts = matchPair ts <|> matchSingle ts
 
 -- Helper function to try matching a pair
 matchPair :: [Tile] -> Maybe (Meld, [Tile])
@@ -83,9 +89,13 @@ matchRun = matchWith seqMeld
 matchTriplet :: [Tile] -> Maybe (Meld, [Tile])
 matchTriplet = matchWith triMeld
 
+-- Helper function to try matching a single tiles for Thirteen Orphans
+matchSingle :: [Tile] -> Maybe (Meld, [Tile])
+matchSingle = matchWith singleMeld
+
 matchWith :: (Tile -> Maybe Meld) -> [Tile] -> Maybe (Meld, [Tile])
-matchWith meld (t : ts) = do
-  m <- meld t
+matchWith matcher (t : ts) = do
+  m <- matcher t
   case match (t : ts) m of
     Nothing -> Nothing
     Just tiles' -> Just (m, tiles')

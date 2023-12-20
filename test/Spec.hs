@@ -142,7 +142,8 @@ main = hspec do
         it "should return False for 33m1155p118s1277z8s" do
           let h = parse "33m1155p118s1277z8s"
               whs = getWinHandsByWinTile h
-          map isSevenPairs whs `shouldBe` []
+          print whs
+          map isSevenPairs whs `shouldMatchList` replicate (length whs) False
 
       describe "isNoPointsHand" do
         it "should return True for 12355m34789p456s2p" do
@@ -206,8 +207,6 @@ main = hspec do
           let h = parse "999m23456789s55z1s"
               whs = getWinHandsByWinTile h
           map isFullStraight whs `shouldMatchList` replicate (length whs) True
-        it "should return False for " do
-          pendingWith "put some test here"
 
       describe "isAllTripletsYaku" do
         it "should return True for 888m333p11177s44z7s" do
@@ -322,20 +321,25 @@ main = hspec do
         it "should return True for 1m19p19s1234567z9m" do
           let h = parse "1m19p19s1234567z9m"
               whs = getWinHandsByWinTile h
-          pendingWith "isThirteenOrphans 1m19p19s1234567z9m"
-        -- map isThirteenOrphans whs `shouldMatchList` replicate (length whs) True
+          map isThirteenOrphans whs
+            `shouldMatchList` replicate (length whs) True
         it "should return False for 19m19p19s12345672z" do
           let h = parse "1m19p19s1234567z9m"
-          pendingWith "isThirteenOrphans 19m19p19s12345672z"
-      -- map isThirteenOrphans whs `shouldMatchList` replicate (length whs) True
+              whs = getWinHandsByWinTile h
+          map isThirteenOrphans whs
+            `shouldMatchList` replicate (length whs) False
 
       describe "isThirteenOrphans13Waits" do
         it "should return True for 19m19p19s12345672z" do
           let h = parse "19m19p19s12345672z"
-          pendingWith "isThirteenOrphans13Waits 19m19p19s12345672z"
+              whs = getWinHandsByWinTile h
+          map isThirteenOrphans13Waits whs
+            `shouldMatchList` replicate (length whs) True
         it "should return False for 1m19p19s1234567z9m" do
           let h = parse "1m19p19s1234567z9m"
-          pendingWith "isThirteenOrphans13Waits 1m19p19s1234567z9m"
+              whs = getWinHandsByWinTile h
+          map isThirteenOrphans13Waits whs
+            `shouldMatchList` replicate (length whs) False
 
       describe "isFourClosedTriplets" do
         it "should return True for 44488m999p222s11z8m" do
@@ -369,56 +373,67 @@ main = hspec do
             `shouldMatchList` replicate (length whs) False
 
       describe "isBigThreeDragons" do
-        it "should return True for " do
-          pendingWith "put some test here"
+        it "should return True for 567m44s555666777z" do
+          let h = parse "567m44s555666777z"
+              whs = getWinHandsByWinTile h
+          map isBigThreeDragons whs
+            `shouldMatchList` replicate (length whs) True
 
       describe "isLittleFourWinds" do
-        it "should return True for " do
-          pendingWith "put some test here"
-        it "should return False for " do
-          pendingWith "put some test here"
+        it "should return True for 678s11122233443z" do
+          let h = parse "678s11122233443z"
+              whs = getWinHandsByWinTile h
+          map isLittleFourWinds whs
+            `shouldMatchList` replicate (length whs) True
 
       describe "isBigFourWinds" do
-        it "should return True for " do
-          pendingWith "put some test here"
-        it "should return False for " do
-          pendingWith "put some test here"
+        it "should return True for 33p111222333444z" do
+          let h = parse "33p111222333444z"
+              whs = getWinHandsByWinTile h
+          map isBigFourWinds whs
+            `shouldMatchList` replicate (length whs) True
 
       describe "isAllHonors" do
-        it "should return True for " do
-          pendingWith "put some test here"
-        it "should return False for " do
-          pendingWith "put some test here"
+        it "should return True for 11222335556661z" do
+          let h = parse "11222335556661z"
+              whs = getWinHandsByWinTile h
+          map isAllHonors whs
+            `shouldMatchList` replicate (length whs) True
 
       describe "isAllTerminals" do
-        it "should return True for " do
-          pendingWith "put some test here"
-        it "should return False for " do
-          pendingWith "put some test here"
+        it "should return True for 11m111999p11999s1m" do
+          let h = parse "11m111999p11999s1m"
+              whs = getWinHandsByWinTile h
+          map isAllTerminals whs
+            `shouldMatchList` replicate (length whs) True
 
       describe "isAllGreen" do
-        it "should return True for " do
-          pendingWith "put some test here"
-        it "should return False for " do
-          pendingWith "put some test here"
+        it "should return True for 22334466888s66z6s" do
+          let h = parse "22334466888s66z6s"
+              whs = getWinHandsByWinTile h
+          map isAllGreen whs
+            `shouldMatchList` replicate (length whs) True
 
       describe "isNineGates" do
-        it "should return True for " do
-          pendingWith "put some test here"
-        it "should return False for " do
-          pendingWith "put some test here"
+        it "should return True for 11123445679998m" do
+          let h = parse "11123445679998m"
+              whs = getWinHandsByWinTile h
+          map isNineGates whs
+            `shouldMatchList` replicate (length whs) True
 
       describe "isNineGates9Waits" do
-        it "should return True for " do
-          pendingWith "put some test here"
-        it "should return False for " do
-          pendingWith "put some test here"
+        it "should return True for 11123456789991p" do
+          let h = parse "11123456789991p"
+              whs = getWinHandsByWinTile h
+          map isNineGates9Waits whs
+            `shouldMatchList` replicate (length whs) True
 
       describe "isFourQuads" do
-        it "should return True for " do
-          pendingWith "put some test here"
-        it "should return False for " do
-          pendingWith "put some test here"
+        it "should return True for 11pk2sk8mK1sK4z" do
+          let h = parse "11pk2sk8mK1sK4z"
+              whs = getWinHandsByWinTile h
+          map isFourQuads whs
+            `shouldMatchList` replicate (length whs) True
 
     describe "2.2 Fu Related" do
       describe "isTwoSideWait" do

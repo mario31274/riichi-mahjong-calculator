@@ -6,13 +6,20 @@ import Meld
 import Tile
 import Wall
 
+data Riichi = NoRiichi | Riichi | DbRiichi
+  deriving (Show, Ord, Eq)
+
+data BonusAgari = NoBonus | DeadWallDraw | RobbedAQuad | UnderTheSea | UnderTheRiver
+  deriving (Show, Ord, Eq)
+
 data WinningHand = WinningHand
   { hand :: [Meld],
     winningTile :: Tile,
     winningMeld :: Meld,
     isTsumo :: Bool,
-    isRiichi :: Bool,
+    riichiStatus :: Riichi,
     isIppatsu :: Bool,
+    bonusAragi :: BonusAgari,
     roundWind :: Wind,
     selfWind :: Wind,
     dora :: Int
@@ -26,8 +33,9 @@ defaultWH =
       winningTile = Default,
       winningMeld = Triplet Default Default Default False,
       isTsumo = False,
-      isRiichi = False,
+      riichiStatus = NoRiichi,
       isIppatsu = False,
+      bonusAragi = NoBonus,
       roundWind = East,
       selfWind = East,
       dora = 0
@@ -49,18 +57,9 @@ isSevenPairs w = length (uniq (hand w)) == 7
 -- No-points hand  (closed or opened)
 isNoPointsHand :: WinningHand -> Bool
 isNoPointsHand w =
-  let threes = tail $ sort $ hand w
-   in case winningMeld w of
-        (Run t1 t2 t3 False) ->
-          isAllRuns threes
-            && isTwoSideWait (Run t1 t2 t3 False) (winningTile w)
-        _ -> False
-  where
-    isAllRuns :: [Meld] -> Bool
-    isAllRuns [] = True
-    isAllRuns (m : ms) = case m of
-      Run _ _ _ _ -> isAllRuns ms
-      _ -> False
+  let threes = filter3TileMelds $ hand w
+   in all isRun threes
+        && isTwoSideWait (winningMeld w) (winningTile w)
 
 -- Twin Sequences
 isTwinSequences :: WinningHand -> Bool
@@ -209,16 +208,18 @@ isFullFlush w =
    in length (nub $ filter (`elem` [Sou, Pin, Man]) melds) == 1
 
 -- Thirteen Orphans
-isThirteenOrphans :: [Tile] -> Bool
-isThirteenOrphans tiles =
-  all isTerminalOrHonorTile tiles
-    && length (uniq $ sort tiles) == 13
+isThirteenOrphans :: WinningHand -> Bool
+isThirteenOrphans w =
+  all isTerminalOrHonorMeld (hand w)
+    && length (filterSingle (hand w)) == 12
+    && winningTile w `notElem` meldToTiles (winningMeld w)
 
 -- Thirteen Orphans 13-wait
-isThirteenOrphans13Waits :: [Tile] -> Bool
-isThirteenOrphans13Waits tiles =
-  all isTerminalOrHonorTile tiles
-    && length (uniq $ sort tiles) == 13
+isThirteenOrphans13Waits :: WinningHand -> Bool
+isThirteenOrphans13Waits w =
+  all isTerminalOrHonorMeld (hand w)
+    && length (filterSingle (hand w)) == 12
+    && winningTile w `elem` meldToTiles (winningMeld w)
 
 -- Four Concealed Triplets
 isFourClosedTriplets :: WinningHand -> Bool
@@ -239,31 +240,49 @@ isFourClosedTripletsSingleWait w =
 
 -- Big Three Dragons
 isBigThreeDragons :: WinningHand -> Bool
-isBigThreeDragons w = undefined
+isBigThreeDragons w =
+  let honorMs = filter isDragonMeld (hand w)
+   in length (filter isTripletOrQuad honorMs) == 3
 
 -- Little Four Winds
 isLittleFourWinds :: WinningHand -> Bool
-isLittleFourWinds w = undefined
+isLittleFourWinds w =
+  let honorMs = filter isWindMeld (hand w)
+   in length (filter isPair honorMs) == 1
+        && length (filter isTripletOrQuad honorMs) == 3
 
 -- Big Four Winds
 isBigFourWinds :: WinningHand -> Bool
-isBigFourWinds w = undefined
+isBigFourWinds w =
+  let honorMs = filter isWindMeld (hand w)
+   in length (filter isTripletOrQuad honorMs) == 4
 
 -- All Honors
 isAllHonors :: WinningHand -> Bool
-isAllHonors w = undefined
+isAllHonors w =
+  let tiles = concatMap meldToTiles $ hand w
+   in all isHonorTile tiles
 
 -- All Terminals
 isAllTerminals :: WinningHand -> Bool
-isAllTerminals w = undefined
+isAllTerminals w =
+  let tiles = concatMap meldToTiles $ hand w
+   in all isTerminalTile tiles
 
 -- All Green
 isAllGreen :: WinningHand -> Bool
-isAllGreen w = undefined
+isAllGreen w =
+  let tiles = concatMap meldToTiles $ hand w
+   in all isGreenTile tiles
 
 -- Nine Gates
 isNineGates :: WinningHand -> Bool
 isNineGates w = undefined
+
+-- isNineGates w =
+--   let tiles = concatMap meldToTiles $ hand w
+--       remain = filter (\x )
+--   in
 
 -- Nine Gates 9-wait
 isNineGates9Waits :: WinningHand -> Bool

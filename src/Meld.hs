@@ -6,12 +6,13 @@ import Tile
 
 type Opened = Bool
 
-data Meld = Pair Tile Tile | Run Tile Tile Tile Opened | Triplet Tile Tile Tile Opened | Quad Tile Tile Tile Tile Opened
+data Meld = Pair Tile Tile | Run Tile Tile Tile Opened | Triplet Tile Tile Tile Opened | Quad Tile Tile Tile Tile Opened | Single Tile
   deriving (Ord, Eq)
 
 instance Show Meld where
   show :: Meld -> String
   show m = case m of
+    Single t -> show (t)
     Pair t1 t2 -> show (t1, t2)
     Run t1 t2 t3 True -> "Chi" ++ show (t1, t2, t3)
     Run t1 t2 t3 False -> show (t1, t2, t3)
@@ -41,6 +42,7 @@ quadMeld t1 t2 t3 t4 opened
   | otherwise = Nothing
 
 meldToTiles :: Meld -> [Tile]
+meldToTiles (Single t) = [t]
 meldToTiles (Pair t1 t2) = [t1, t2]
 meldToTiles (Run t1 t2 t3 _) = [t1, t2, t3]
 meldToTiles (Triplet t1 t2 t3 _) = [t1, t2, t3]
@@ -84,6 +86,11 @@ getSeq t1 = case nextNumeric t1 of
 -- Closed triplet meld
 triMeld :: Tile -> Maybe Meld
 triMeld t = tripletMeld t t t False
+
+singleMeld :: Tile -> Maybe Meld
+singleMeld t
+  | isTerminalOrHonorTile t = Just (Single t)
+  | otherwise = Nothing
 
 -- --Unmodifiable melds--
 --
@@ -130,28 +137,19 @@ isClosedRun m = case m of
 
 -- Meld without terminal tiles
 isNonTerminalMeld :: Meld -> Bool
-isNonTerminalMeld (Pair t1 _) = isNonTerminalTile t1
 isNonTerminalMeld (Run t1 t2 t3 _) = all isNonTerminalTile [t1, t2, t3]
-isNonTerminalMeld (Triplet t1 _ _ _) = isNonTerminalTile t1
-isNonTerminalMeld (Quad t1 _ _ _ _) = isNonTerminalTile t1
+isNonTerminalMeld m = isXMeld isNonTerminalTile m
 
 isTerminalMeld :: Meld -> Bool
-isTerminalMeld (Pair t1 _) = isTerminalTile t1
 isTerminalMeld (Run t1 _ t3 _) = isTerminalTile t1 || isTerminalTile t3
-isTerminalMeld (Triplet t1 _ _ _) = isTerminalTile t1
-isTerminalMeld (Quad t1 _ _ _ _) = isTerminalTile t1
+isTerminalMeld m = isXMeld isTerminalTile m
 
 isTerminalOrHonorMeld :: Meld -> Bool
-isTerminalOrHonorMeld (Pair t1 _) = isTerminalOrHonorTile t1
 isTerminalOrHonorMeld (Run t1 _ t3 _) = isTerminalOrHonorTile t1 || isTerminalOrHonorTile t3
-isTerminalOrHonorMeld (Triplet t1 _ _ _) = isTerminalOrHonorTile t1
-isTerminalOrHonorMeld (Quad t1 _ _ _ _) = isTerminalOrHonorTile t1
+isTerminalOrHonorMeld m = isXMeld isTerminalOrHonorTile m
 
 isHonorMeld :: Meld -> Bool
-isHonorMeld (Pair t1 _) = isHonorTile t1
-isHonorMeld (Triplet t1 _ _ _) = isHonorTile t1
-isHonorMeld (Quad t1 _ _ _ _) = isHonorTile t1
-isHonorMeld _ = False
+isHonorMeld = isXMeld isHonorTile
 
 isClosedTriplet :: Meld -> Bool
 isClosedTriplet m = case m of
@@ -178,17 +176,29 @@ isQuad m = case m of
   Quad {} -> True
   _ -> False
 
+isSingle :: Meld -> Bool
+isSingle m = case m of
+  Single _ -> True
+  _ -> False
+
 is3TileMeld :: Meld -> Bool
 is3TileMeld m = isRun m || isTriplet m
 
 isTripletOrQuad :: Meld -> Bool
 isTripletOrQuad m = isTriplet m || isQuad m
 
+isWindMeld :: Meld -> Bool
+isWindMeld = isXMeld isWindTile
+
 isDragonMeld :: Meld -> Bool
-isDragonMeld (Pair t1 _) = isDragonTile t1
-isDragonMeld (Triplet t1 _ _ _) = isDragonTile t1
-isDragonMeld (Quad t1 _ _ _ _) = isDragonTile t1
-isDragonMeld _ = False
+isDragonMeld = isXMeld isDragonTile
+
+isXMeld :: (Tile -> Bool) -> Meld -> Bool
+isXMeld x (Single t) = x t
+isXMeld x (Pair t1 _) = x t1
+isXMeld x (Triplet t1 _ _ _) = x t1
+isXMeld x (Quad t1 _ _ _ _) = x t1
+isXMeld _ _ = False
 
 filter3TileMelds :: [Meld] -> [Meld]
 filter3TileMelds = filter is3TileMeld
@@ -204,3 +214,6 @@ filterQuadMelds = filter isQuad
 
 filterTripletOrQuadMelds :: [Meld] -> [Meld]
 filterTripletOrQuadMelds = filter isTripletOrQuad
+
+filterSingle :: [Meld] -> [Meld]
+filterSingle = filter isSingle

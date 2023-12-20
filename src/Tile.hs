@@ -108,6 +108,16 @@ isWindTile t = case t of
   Wind _ -> True
   _ -> False
 
+isGreenTile :: Tile -> Bool
+isGreenTile t = case t of
+  Numeric 2 Sou -> True
+  Numeric 3 Sou -> True
+  Numeric 4 Sou -> True
+  Numeric 6 Sou -> True
+  Numeric 8 Sou -> True
+  Dragon Green -> True
+  _ -> False
+
 instance Show Suit where
   show :: Suit -> String
   show suit = case suit of
