@@ -2,8 +2,8 @@ module Hand where
 
 import Control.Applicative
 import Data.List
-import Data.Maybe (fromMaybe)
 import Meld
+import Rule
 import Tile
 
 -- data WinningHand = Standard [Meld] | SevenPairs [Meld] | ThirteenOrphans [Tile]
@@ -15,13 +15,6 @@ import Tile
 -- matchStandard h = undefined
 
 type Hand = ([Tile], [Meld])
-
-data WinningHand = WinningHand
-  { hand :: [Meld],
-    winningTile :: Tile,
-    winningMeld :: Meld
-  }
-  deriving (Show)
 
 pluck :: (Eq a) => a -> [a] -> Maybe [a]
 pluck x [] = Nothing
@@ -142,7 +135,7 @@ getWinHandsByWinTile hand tile
        in map (\(ms, wm) -> initWinningHand ms wm tile) f
   where
     initWinningHand :: [Meld] -> Meld -> Tile -> WinningHand
-    initWinningHand ms wm t = WinningHand {hand = ms, winningMeld = wm, winningTile = t}
+    initWinningHand ms wm t = defaultWH {hand = ms, winningMeld = wm, winningTile = t}
 
 findWinningMelds :: [[Meld]] -> Tile -> [([Meld], Meld)]
 findWinningMelds (ms : mss) t =

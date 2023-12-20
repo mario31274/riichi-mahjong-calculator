@@ -20,10 +20,6 @@ instance Show Meld where
     Quad t1 t2 t3 t4 True -> "Kan" ++ show (t1, t2, t3, t4)
     Quad t1 t2 t3 t4 False -> "ClosedKan(\x1f02b," ++ show t2 ++ "," ++ show t3 ++ ",\x1f02b)"
 
--- instance Ord Meld where
---   compare :: Meld -> Meld -> Ordering
---   compare (Quad t1 _ _ _ False) (Quad t2 _ _ _ True) = LT
-
 pairMeld :: Tile -> Tile -> Maybe Meld
 pairMeld t1 t2
   | isAllSame [t1, t2] = Just (Pair t1 t2)
@@ -137,6 +133,16 @@ isTanyaoMeld :: Meld -> Bool
 isTanyaoMeld (Run t1 t2 t3 _) = all isNonTerminalTile [t1, t2, t3]
 isTanyaoMeld (Triplet t1 t2 t3 _) = all isNonTerminalTile [t1, t2, t3]
 isTanyaoMeld _ = False
+
+isClosedTriplet :: Meld -> Bool
+isClosedTriplet m = case m of
+  Triplet _ _ _ False -> True
+  _ -> False
+
+isTriplet :: Meld -> Bool
+isTriplet m = case m of
+  Triplet _ _ _ _ -> True
+  _ -> False
 
 filter3TileMelds :: [Meld] -> [Meld]
 filter3TileMelds = filter is3TileMelds

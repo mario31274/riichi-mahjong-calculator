@@ -2,10 +2,20 @@ module Rule where
 
 import Data.List
 import Data.Maybe
-import Hand
 import Meld
 import Tile
 import Wall
+
+data WinningHand = WinningHand
+  { hand :: [Meld],
+    winningTile :: Tile,
+    winningMeld :: Meld,
+    isTsumo :: Bool
+  }
+  deriving (Show)
+
+defaultWH :: WinningHand
+defaultWH = WinningHand {hand = [], winningTile = Numeric {}, winningMeld = [], isTsumo = False}
 
 -- The two metrics for calculating final score
 type HanFu = (Int, Int)
@@ -14,8 +24,8 @@ type HanFu = (Int, Int)
 uniq :: (Eq b) => [b] -> [b]
 uniq = map head . group
 
-isThirteenOrphans :: Hand -> Bool
-isThirteenOrphans (tiles, _) = all isTerminalTile tiles && length (uniq $ sort tiles) == 13
+isThirteenOrphans :: [Tile] -> Bool
+isThirteenOrphans tiles = all isTerminalTile tiles && length (uniq $ sort tiles) == 13
 
 -- Yakus (Scoring Rules)
 isClosedHand :: WinningHand -> Bool
@@ -72,9 +82,9 @@ isThreeMixedSequences w = do
     _ -> False
 
 -- Full Straight
-isFullStraight :: [Meld] -> Tile -> Bool
-isFullStraight ms _ = do
-  let threes = tail $ sort ms
+isFullStraight :: WinningHand -> Bool
+isFullStraight w = do
+  let threes = filter3TileMelds $ hand w
   case find (\m -> numOfMeld m == Just 1) threes of
     Just m ->
       case find (\m' -> numOfMeld m' == Just 4 && suitOfMeld m == suitOfMeld m') threes of
@@ -86,20 +96,22 @@ isFullStraight ms _ = do
     _ -> False
 
 -- Seven Pairs
-isSevenPairs :: [Meld] -> Tile -> Bool
-isSevenPairs melds _ = length (uniq melds) == 7
+isSevenPairs :: WinningHand -> Bool
+isSevenPairs w = length (uniq (hand w)) == 7
 
 -- All Triplets (not Four)
-isAllTriplets :: WinningHand -> Bool
-isAllTriplets = undefined
+isAllTripletsYaku :: WinningHand -> Bool
+isAllTripletsYaku w =
+  let threes = filter3TileMelds $ hand w
+   in all isTriplet threes
 
 -- Half Flush
 isHalfFlush :: WinningHand -> Bool
-isHalfFlush = undefined
+isHalfFlush w = undefined
 
 -- Full Flush
 isFullFlush :: WinningHand -> Bool
-isFullFlush = undefined
+isFullFlush w = undefined
 
 -- All Honors
 
