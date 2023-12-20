@@ -17,22 +17,23 @@ uniq = map head . group
 isThirteenOrphans :: Hand -> Bool
 isThirteenOrphans (tiles, _) = all isTerminalTile tiles && length (uniq $ sort tiles) == 13
 
--- Yakus
-isClosedHand :: [Meld] -> Tile -> Bool
-isClosedHand ms _ = all isClosedMeld ms
+-- Yakus (Scoring Rules)
+isClosedHand :: WinningHand -> Bool
+isClosedHand w = all isClosedMeld (hand w)
 
 -- All simple
-isAllSimple :: [Meld] -> Tile -> Bool
-isAllSimple ms _ = all (all isNonTerminalTile . meldToTiles) ms
+isAllSimple :: WinningHand -> Bool
+isAllSimple w = all (all isNonTerminalTile . meldToTiles) (hand w)
 
 -- Pinfu / No-points hand  (closed or opened)
-isPinfu :: [Meld] -> Tile -> Bool
-isPinfu ms wt = do
-  let threes = tail $ sort ms
-  let winningMeld = findTileInMelds threes wt
-  case winningMeld of
-    Just (Run t1 t2 t3 False) -> isAllRuns threes && isTwoSideWait (Run t1 t2 t3 False) wt
-    _ -> False
+isPinfu :: WinningHand -> Bool
+isPinfu w =
+  let threes = tail $ sort $ hand w
+   in case winningMeld w of
+        (Run t1 t2 t3 False) ->
+          isAllRuns threes
+            && isTwoSideWait (Run t1 t2 t3 False) (winningTile w)
+        _ -> False
   where
     isAllRuns :: [Meld] -> Bool
     isAllRuns [] = True
@@ -41,25 +42,25 @@ isPinfu ms wt = do
       _ -> False
 
 -- Twin Sequences
-isTwinSequences :: [Meld] -> Tile -> Bool
-isTwinSequences ms wt =
-  all isClosedRun threes
-    && length ms - length (nub ms) == 1
-  where
-    threes = tail $ sort ms
+isTwinSequences :: WinningHand -> Bool
+isTwinSequences w =
+  let ms = hand w
+      threes = tail $ sort $ hand w
+   in all isClosedRun threes
+        && length ms - length (nub ms) == 1
 
 -- Double Twin Sequences
-isDoubleTwinSequences :: [Meld] -> Tile -> Bool
-isDoubleTwinSequences ms _ =
-  all isClosedRun threes
-    && length ms - length (nub ms) == 2
-  where
-    threes = tail $ sort ms
+isDoubleTwinSequences :: WinningHand -> Bool
+isDoubleTwinSequences w =
+  let ms = hand w
+      threes = tail $ sort $ hand w
+   in all isClosedRun threes
+        && length ms - length (nub ms) == 2
 
 -- Three Mixed Sequences
-isThreeMixedSequences :: [Meld] -> Tile -> Bool
-isThreeMixedSequences ms _ = do
-  let threes = tail $ sort ms
+isThreeMixedSequences :: WinningHand -> Bool
+isThreeMixedSequences w = do
+  let threes = filter3TileMelds $ hand w
   let souM = find (\y -> suitOfMeld y == Just Sou) threes
   let pinM = find (\y -> suitOfMeld y == Just Pin) threes
   let manM = find (\y -> suitOfMeld y == Just Man) threes
@@ -89,10 +90,16 @@ isSevenPairs :: [Meld] -> Tile -> Bool
 isSevenPairs melds _ = length (uniq melds) == 7
 
 -- All Triplets (not Four)
+isAllTriplets :: WinningHand -> Bool
+isAllTriplets = undefined
 
 -- Half Flush
+isHalfFlush :: WinningHand -> Bool
+isHalfFlush = undefined
 
 -- Full Flush
+isFullFlush :: WinningHand -> Bool
+isFullFlush = undefined
 
 -- All Honors
 

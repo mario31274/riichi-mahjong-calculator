@@ -137,3 +137,11 @@ isTanyaoMeld :: Meld -> Bool
 isTanyaoMeld (Run t1 t2 t3 _) = all isNonTerminalTile [t1, t2, t3]
 isTanyaoMeld (Triplet t1 t2 t3 _) = all isNonTerminalTile [t1, t2, t3]
 isTanyaoMeld _ = False
+
+filter3TileMelds :: [Meld] -> [Meld]
+filter3TileMelds = filter is3TileMelds
+  where
+    is3TileMelds :: Meld -> Bool
+    is3TileMelds (Run _ _ _ _) = True
+    is3TileMelds (Triplet _ _ _ _) = True
+    is3TileMelds _ = False

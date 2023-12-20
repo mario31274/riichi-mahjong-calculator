@@ -38,7 +38,8 @@ main = do
   -- print $ getOpenedMeld "C0s"
   -- print $ groupByDigits "44556678p123s88m3p"
   -- print $ groupByDigits "45678p123s88m3p#C456p"
-  -- print $ parse "45678p123s88m3p#C456p"
+  -- print $ groupByDigits "234p55m#C2mP2sK2z"
+  print $ groupTileAndMeldStrings "234p55mC2mP2sK2z"
 
   -- let hand9 = parser "45678p123s88m3pC4#K456p"
   -- print $ matchIntoMelds hand9

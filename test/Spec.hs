@@ -6,8 +6,10 @@
 
 -- import Melds
 
-import Match
+import Data.List (sort)
+import Hand
 import Meld
+import Parser
 import Rule
 import Test.Hspec
 import Test.QuickCheck
@@ -54,7 +56,7 @@ main = hspec do
         property $ forAll getSequentialMeld $ \m -> do
           case m of
             Triplet t1 t2 t3 opened ->
-              sequentialMeld t1 t2 t3 opened `shouldBe` Just (Triplet t1 t2 t3 opened)
+              sequentialMeld t1 t2 t3 opened `shouldBe` Just (Run t1 t2 t3 opened)
       it "should not allow melds like (9, 1, 2)" do
         property $ forAll anyNumericSuit $ \s -> do
           sequentialMeld (numeric 8 s) (numeric 9 s) (numeric 1 s) False `shouldBe` Nothing
@@ -71,39 +73,124 @@ main = hspec do
           tripletMeld (numeric 1 Sou) (numeric 2 Sou) (numeric 3 Sou) False `shouldBe` Nothing
           tripletMeld t1 t1 t1 False `shouldBe` Just (Triplet t1 t1 t1 False)
 
-    context "1.3 Wall" do
-      describe "fullWall" do
-        it "should has length of 136" do
-          length fullWall `shouldBe` 136
+  context "1.3 Wall" do
+    describe "fullWall" do
+      it "should has length of 136" do
+        length fullWall `shouldBe` 136
 
-    context "1.4 Hand" do
-      describe "sortHand" do
-        it "should sort a hand in numeric order than in suit" do
-          pendingWith "pending..."
-      describe "pluck" do
-        it "should only take one tile away" do
-          property $ forAll anyTilesOf14 $ \(h : hs) -> do
-            pluck h (h : hs) `shouldBe` Just (removeItem h (h : hs))
+  context "1.4 Hand" do
+    describe "sort Hand" do
+      it "should sort a hand in numeric order first, then in suit (s->p->m->z)" do
+        let hand = parser "789m1233458p8p333s"
+        let sorted = parser "333s12334588p789m"
+        sort (fst hand) `shouldBe` fst sorted
+    describe "pluck" do
+      it "should only take one tile away" do
+        property $ forAll anyTilesOf14 $ \(h : hs) -> do
+          pluck h (h : hs) `shouldBe` Just (removeItem h (h : hs))
 
--- property do
---   return $
+  context "1.5 Parser" do
+    describe "parser" do
+      it "should return a valid hand" do
+        let s1 = "22233344455566m"
+        parser s1 `shouldBe` hand1
+        let s2 = "789m1233458p8pP333s"
+        parser s2 `shouldBe` hand2
+        let s3 = "234p55mC2mP2sK2z"
+        parser s3 `shouldBe` hand3
 
--- context "1.3 Walls" do
---   describe "Wall" do
---     it "returns a set of 136 tiles " $
---       property
---         do
---           d <- wall
---           length d `shouldBe` 136
--- context "1.4 Yaku" do
---   describe "All simples" do
---     it "occurs when there's no 1, 9 or Honor tiles" do
---       property do
---         undefined
+  context "2 Rules" do
+    describe "2.1 Han Related" do
+      describe "isClosedHand" do
+        it "should return True for " do
+          pendingWith "put some test here"
+        it "should return False for " do
+          pendingWith "put some test here"
 
--- context "1.5 Hand Score" do
---   describe "Winning Hand" do
---     it "should consist of 4 melds and 1 pair" do
+      describe "isAllSimple" do
+        it "should return True for " do
+          pendingWith "put some test here"
+        it "should return False for " do
+          pendingWith "put some test here"
+
+      describe "isPinfu" do
+        it "should return True for " do
+          pendingWith "put some test here"
+        it "should return False for " do
+          pendingWith "put some test here"
+
+      describe "isTwinSequences" do
+        it "should return True for " do
+          pendingWith "put some test here"
+        it "should return False for " do
+          pendingWith "put some test here"
+
+      describe "isDoubleTwinSequences" do
+        it "should return True for " do
+          pendingWith "put some test here"
+        it "should return False for " do
+          pendingWith "put some test here"
+
+      describe "isThreeMixedSequences" do
+        it "should return True for " do
+          pendingWith "put some test here"
+        it "should return False for " do
+          pendingWith "put some test here"
+
+      describe "isFullStraight" do
+        it "should return True for " do
+          pendingWith "put some test here"
+        it "should return False for " do
+          pendingWith "put some test here"
+
+      describe "isAllTriplets" do
+        it "should return True for " do
+          pendingWith "put some test here"
+        it "should return False for " do
+          pendingWith "put some test here"
+
+      describe "isHalfFlush" do
+        it "should return True for " do
+          pendingWith "put some test here"
+        it "should return False for " do
+          pendingWith "put some test here"
+
+      describe "isFullFlush" do
+        it "should return True for " do
+          pendingWith "put some test here"
+        it "should return False for " do
+          pendingWith "put some test here"
+
+    describe "2.2 Fu Related" do
+      describe "isTwoSideWait" do
+        it "should return True for " do
+          pendingWith "put some test here"
+        it "should return False for " do
+          pendingWith "put some test here"
+
+      describe "isOneSideWait" do
+        it "should return True for " do
+          pendingWith "put some test here"
+        it "should return False for " do
+          pendingWith "put some test here"
+
+      describe "isDragonPair" do
+        it "should return True for " do
+          pendingWith "put some test here"
+        it "should return False for " do
+          pendingWith "put some test here"
+
+      describe "isWindPair" do
+        it "should return True for " do
+          pendingWith "put some test here"
+        it "should return False for " do
+          pendingWith "put some test here"
+
+      describe "isSelfWindPair" do
+        it "should return True for " do
+          pendingWith "put some test here"
+        it "should return False for " do
+          pendingWith "put some test here"
 
 instance Arbitrary Suit where
   arbitrary = arbitrary
@@ -223,3 +310,57 @@ removeItem _ [] = []
 removeItem x (y : ys)
   | x == y = ys
   | otherwise = y : removeItem x ys
+
+-- 22233344455566m
+hand1 :: Hand
+hand1 =
+  ( [ Numeric 2 Man,
+      Numeric 2 Man,
+      Numeric 2 Man,
+      Numeric 3 Man,
+      Numeric 3 Man,
+      Numeric 3 Man,
+      Numeric 4 Man,
+      Numeric 4 Man,
+      Numeric 4 Man,
+      Numeric 5 Man,
+      Numeric 5 Man,
+      Numeric 5 Man,
+      Numeric 6 Man,
+      Numeric 6 Man
+    ],
+    []
+  )
+
+-- 789m1233458p8p#P333s
+hand2 :: Hand
+hand2 =
+  ( [ Numeric 7 Man,
+      Numeric 8 Man,
+      Numeric 9 Man,
+      Numeric 1 Pin,
+      Numeric 2 Pin,
+      Numeric 3 Pin,
+      Numeric 3 Pin,
+      Numeric 4 Pin,
+      Numeric 5 Pin,
+      Numeric 8 Pin,
+      Numeric 8 Pin
+    ],
+    [Triplet (Numeric 3 Sou) (Numeric 3 Sou) (Numeric 3 Sou) True]
+  )
+
+-- 234p55m#C2mP2sK2z
+hand3 :: Hand
+hand3 =
+  ( [ Numeric 2 Pin,
+      Numeric 3 Pin,
+      Numeric 4 Pin,
+      Numeric 5 Man,
+      Numeric 5 Man
+    ],
+    [ Run (Numeric 2 Man) (Numeric 3 Man) (Numeric 4 Man) True,
+      Triplet (Numeric 2 Sou) (Numeric 2 Sou) (Numeric 2 Sou) True,
+      Quad (Wind South Honor) (Wind South Honor) (Wind South Honor) (Wind South Honor) True
+    ]
+  )

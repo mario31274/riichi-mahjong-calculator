@@ -12,7 +12,7 @@ parser s =
    in (parseMaybe tss getSingleTile, parseMaybe mss getOpenedMeld)
 
 sanitizeInputForTiles :: String -> String
-sanitizeInputForTiles = filter (`elem` ['1' .. '9'] ++ ['s', 'p', 'm', 'z', 'C', 'P', 'K', 'k', '#', ' ', '|'])
+sanitizeInputForTiles = filter (`elem` ['1' .. '9'] ++ ['s', 'p', 'm', 'z', 'C', 'P', 'K', 'k'])
 
 parseMaybe :: [[Char]] -> ([Char] -> Maybe a) -> [a]
 parseMaybe [] _ = []
@@ -23,7 +23,7 @@ parseMaybe (cs : css) p =
 
 groupTileAndMeldStrings :: String -> ([String], [String])
 groupTileAndMeldStrings s =
-  let (tStrings, mStrings) = span isAlphaNum s
+  let (tStrings, mStrings) = span (`notElem` ['C', 'P', 'K', 'k']) s
    in (groupTileStrings (groupByDigits tStrings), groupMeldStrings (groupByDigits mStrings))
 
 groupTileStrings :: [String] -> [[Char]]
@@ -61,11 +61,14 @@ groupByDigits = group
     group :: String -> [String]
     group [] = []
     group (c : cs)
+      | c `elem` ['C', 'P', 'K', 'k'] =
+          let (digits, rest) = span (`elem` ['C', 'P', 'K', 'k']) cs
+           in (c : digits) : group rest
       | isDigit c =
           let (digits, rest) = span isDigit cs
            in (c : digits) : group rest
-      | isAlpha c =
-          let (digits, rest) = span isAlpha cs
+      | isAlpha c && c `notElem` ['C', 'P', 'K', 'k'] =
+          let (digits, rest) = span (\c -> isAlpha c && c `notElem` ['C', 'P', 'K', 'k']) cs
            in (c : digits) : group rest
       | otherwise = group cs
 
