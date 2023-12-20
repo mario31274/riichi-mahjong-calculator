@@ -13,7 +13,7 @@ data WinningHand = WinningHand
     isTsumo :: Bool,
     dora :: Int
   }
-  deriving (Show)
+  deriving (Show, Ord, Eq)
 
 defaultWH :: WinningHand
 defaultWH =
@@ -32,16 +32,13 @@ type HanFu = (Int, Int)
 uniq :: (Eq b) => [b] -> [b]
 uniq = map head . group
 
-isThirteenOrphans :: [Tile] -> Bool
-isThirteenOrphans tiles = all isTerminalTile tiles && length (uniq $ sort tiles) == 13
-
 -- Yakus (Scoring Rules)
 isClosedHand :: WinningHand -> Bool
 isClosedHand w = all isClosedMeld (hand w)
 
--- All simple
-isAllSimple :: WinningHand -> Bool
-isAllSimple w = all (all isNonTerminalTile . meldToTiles) (hand w)
+-- Seven Pairs
+isSevenPairs :: WinningHand -> Bool
+isSevenPairs w = length (uniq (hand w)) == 7
 
 -- Pinfu / No-points hand  (closed or opened)
 isPinfu :: WinningHand -> Bool
@@ -63,16 +60,16 @@ isPinfu w =
 isTwinSequences :: WinningHand -> Bool
 isTwinSequences w =
   let ms = hand w
-      threes = tail $ sort $ hand w
-   in all isClosedRun threes
+      threes = filter3TileMelds ms
+   in isClosedHand w
         && length ms - length (nub ms) == 1
 
 -- Double Twin Sequences
 isDoubleTwinSequences :: WinningHand -> Bool
 isDoubleTwinSequences w =
   let ms = hand w
-      threes = tail $ sort $ hand w
-   in all isClosedRun threes
+      threes = filter3TileMelds ms
+   in isClosedHand w
         && length ms - length (nub ms) == 2
 
 -- Three Mixed Sequences
@@ -103,15 +100,49 @@ isFullStraight w = do
         _ -> False
     _ -> False
 
--- Seven Pairs
-isSevenPairs :: WinningHand -> Bool
-isSevenPairs w = length (uniq (hand w)) == 7
-
 -- All Triplets (not Four)
 isAllTripletsYaku :: WinningHand -> Bool
 isAllTripletsYaku w =
   let threes = filter3TileMelds $ hand w
-   in all isTriplet threes
+   in all isTripletOrQuad threes -- && not isFourClosedTriplets w
+
+-- Three Concealed Triplets
+isThreeClosedTriplets :: WinningHand -> Bool
+isThreeClosedTriplets w =
+  let triplets = filterTripletOrQuadMelds $ hand w
+   in length triplets == 3 && all isClosedMeld triplets
+
+-- Three Mixed Triplets
+isThreeMixedTriplets :: WinningHand -> Bool
+isThreeMixedTriplets w = undefined
+
+-- Three Quads
+isThreeQuads :: WinningHand -> Bool
+isThreeQuads w = undefined
+
+-- All simple
+isAllSimple :: WinningHand -> Bool
+isAllSimple w = all (all isNonTerminalTile . meldToTiles) (hand w)
+
+-- Honor Tiles
+isHonorTiles :: WinningHand -> Bool
+isHonorTiles w = undefined
+
+-- Common Ends
+isCommonEnds :: WinningHand -> Bool
+isCommonEnds w = undefined
+
+-- Common Terminals
+isCommonTerminals :: WinningHand -> Bool
+isCommonTerminals w = undefined
+
+-- All Terminals and Honors
+isAllTerminalsAndHonors :: WinningHand -> Bool
+isAllTerminalsAndHonors w = undefined
+
+-- Little Three Dragons
+isLittleThreeDragons :: WinningHand -> Bool
+isLittleThreeDragons w = undefined
 
 -- Half Flush
 isHalfFlush :: WinningHand -> Bool
@@ -121,13 +152,52 @@ isHalfFlush w = undefined
 isFullFlush :: WinningHand -> Bool
 isFullFlush w = undefined
 
+-- Thirteen Orphans
+isThirteenOrphans :: [Tile] -> Bool
+isThirteenOrphans tiles = all isTerminalTile tiles && length (uniq $ sort tiles) == 13
+
+-- Four Concealed Triplets
+isFourClosedTriplets :: WinningHand -> Bool
+isFourClosedTriplets w = undefined
+
+-- Four Concealed Triplets Single Wait
+isFourClosedTripletsSingleWait :: WinningHand -> Bool
+isFourClosedTripletsSingleWait w = undefined
+
+-- Big Three Dragons
+isBigThreeDragons :: WinningHand -> Bool
+isBigThreeDragons w = undefined
+
+-- Little Four Winds
+isLittleFourWinds :: WinningHand -> Bool
+isLittleFourWinds w = undefined
+
+-- Big Four Winds
+isBigFourWinds :: WinningHand -> Bool
+isBigFourWinds w = undefined
+
 -- All Honors
+isAllHonors :: WinningHand -> Bool
+isAllHonors w = undefined
 
 -- All Terminals
+isAllTerminals :: WinningHand -> Bool
+isAllTerminals w = undefined
 
 -- All Green
+isAllGreen :: WinningHand -> Bool
+isAllGreen w = undefined
 
--- Fu's
+-- Nine Gates
+isNineGates :: WinningHand -> Bool
+isNineGates w = undefined
+
+-- Nine Gates 9-wait
+isNineGates9Waits :: WinningHand -> Bool
+isNineGates9Waits w = undefined
+
+-----------
+-- Fu Related
 -- Two-side Wait, if meld is open then return False
 -- (Winning tiles can't be inside an opened meld)
 isTwoSideWait :: Meld -> Tile -> Bool

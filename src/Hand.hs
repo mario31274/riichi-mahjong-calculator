@@ -6,14 +6,6 @@ import Meld
 import Rule
 import Tile
 
--- data WinningHand = Standard [Meld] | SevenPairs [Meld] | ThirteenOrphans [Tile]
---   deriving (Eq, Show)
-
--- matchStandard :: Hand -> WinningHand
--- standard h = Standard pair m1++m2++m3++m4
---   where m1
--- matchStandard h = undefined
-
 type Hand = ([Tile], [Meld])
 
 pluck :: (Eq a) => a -> [a] -> Maybe [a]
@@ -126,13 +118,15 @@ noTilesMoreThanFour (ts, ms) = do
   let allTiles = ts ++ concatMap meldToTiles ms
    in all (\x -> length x <= 4) (group (sort allTiles))
 
-getWinHandsByWinTile :: Hand -> Tile -> [WinningHand]
-getWinHandsByWinTile hand tile
+getWinHandsByWinTile :: Hand -> [WinningHand]
+getWinHandsByWinTile hand
   | not $ isValidWinningHand hand = []
   | otherwise =
-      let mss = validMatches (matchIntoMelds hand)
-          f = findWinningMelds mss tile
-       in map (\(ms, wm) -> initWinningHand ms wm tile) f
+      let mss = map sort $ validMatches (matchIntoMelds hand)
+          wt = last $ fst hand
+          f = findWinningMelds mss wt
+          sortedWH = sort $ map (\(ms, wm) -> initWinningHand ms wm wt) f
+       in uniq sortedWH
   where
     initWinningHand :: [Meld] -> Meld -> Tile -> WinningHand
     initWinningHand ms wm t = defaultWH {hand = ms, winningMeld = wm, winningTile = t}
@@ -141,6 +135,7 @@ findWinningMelds :: [[Meld]] -> Tile -> [([Meld], Meld)]
 findWinningMelds (ms : mss) t =
   let threesFirst = tail ms ++ [head ms]
    in findWinningMelds' (threesFirst : ms : mss) t
+findWinningMelds [] _ = []
 
 -- find the winning melds among winning hands with a win tile, ideally in closed melds
 -- only return first occurrence
@@ -148,5 +143,5 @@ findWinningMelds' :: [[Meld]] -> Tile -> [([Meld], Meld)]
 findWinningMelds' [] _ = []
 findWinningMelds' (ms : mss) t = case findTileInMelds ms t of
   Just m ->
-    (ms, m) : findWinningMelds' mss t
+    (sort ms, m) : findWinningMelds' mss t
   Nothing -> findWinningMelds' mss t

@@ -46,12 +46,16 @@ main = do
   -- print $ uniq $ sort $ map sort $ validMatches $ matchIntoMelds hand9
   -- print $ isValidWinningHand hand9
   let handS1 = "22233344455566m"
-  let handS2 = "12345666777888p"
-  let hand = parser handS2
+  let handS2 = "12345667778886p"
+  let handS3 = "24m556677p999s66z3m"
+  let hand = parse handS3
+
   -- let mss = uniq $ sort $ map sort $ validMatches $ matchIntoMelds hand
   -- print mss
   -- let found = findWinningMelds' mss (Numeric 6 Pin)
   -- print found
-  print $ getWinHandsByWinTile hand (Numeric 6 Pin)
+  -- print $ validMatches $ matchIntoMelds hand
+
+  print $ getWinHandsByWinTile hand
 
 -- print $ isClosedHand $ fst hand2

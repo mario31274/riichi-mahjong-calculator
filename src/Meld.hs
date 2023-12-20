@@ -139,15 +139,25 @@ isClosedTriplet m = case m of
   Triplet _ _ _ False -> True
   _ -> False
 
+is3TileMelds :: Meld -> Bool
+is3TileMelds m = case m of
+  Run {} -> True
+  Triplet {} -> True
+  _ -> False
+
 isTriplet :: Meld -> Bool
 isTriplet m = case m of
-  Triplet _ _ _ _ -> True
+  Triplet {} -> True
+  _ -> False
+
+isTripletOrQuad :: Meld -> Bool
+isTripletOrQuad m = case m of
+  Triplet {} -> True
+  Quad {} -> True
   _ -> False
 
 filter3TileMelds :: [Meld] -> [Meld]
 filter3TileMelds = filter is3TileMelds
-  where
-    is3TileMelds :: Meld -> Bool
-    is3TileMelds (Run _ _ _ _) = True
-    is3TileMelds (Triplet _ _ _ _) = True
-    is3TileMelds _ = False
+
+filterTripletOrQuadMelds :: [Meld] -> [Meld]
+filterTripletOrQuadMelds = filter isTripletOrQuad

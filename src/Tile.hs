@@ -35,9 +35,8 @@ instance Ord Tile where
   compare (Numeric _ _) _ = LT
   compare (Wind _) (Numeric _ _) = GT
   compare (Wind _) (Dragon _) = LT
-  compare (Wind _) Default = LT
+  compare (Dragon _) (Numeric _ _) = GT
   compare (Dragon _) (Wind _) = GT
-  compare (Dragon _) Default = LT
   compare _ Default = LT
   compare Default _ = GT
 
@@ -89,6 +88,9 @@ isNonTerminalTile _ = False
 
 isTerminalTile :: Tile -> Bool
 isTerminalTile t = not $ isNonTerminalTile t
+
+isHonorTile :: Tile -> Bool
+isHonorTile t = suitOf t == Honor
 
 instance Show Suit where
   show :: Suit -> String
