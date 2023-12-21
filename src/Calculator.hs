@@ -1,6 +1,7 @@
 module Calculator where
 
 import Hand
+import Meld
 import Rule
 import Tile
 
@@ -105,23 +106,98 @@ calcYakuAndFu w (yakus, fus) = undefined
 
 getYakus :: WinningHand -> [Yaku]
 getYakus w =
-  appendYakus isRiichi (Normal Riichi) w
-    ++ appendYakus isIppatsu (Normal Ippatsu) w
-    ++ appendYakus isClosedTsumo (Normal ClosedTsumo) w
-    ++ appendYakus isAllSimple (Normal AllSimple) w
-    ++ appendYakus isHonorTiles (honorTilesDYakus) w
+  appendYakus isThirteenOrphans [Yakuman ThirteenOrphans] w
+    ++ appendYakus isThirteenOrphans13Waits [Yakuman ThirteenOrphans13Waits] w
+    ++ appendYakus isFourClosedTriplets [Yakuman FourClosedTriplets] w
+    ++ appendYakus isFourClosedTripletsSingleWait [Yakuman FourClosedTripletsSingleWait] w
+    ++ appendYakus isBigThreeDragons [Yakuman BigThreeDragons] w
+    ++ appendYakus isLittleFourWinds [Yakuman LittleFourWinds] w
+    ++ appendYakus isBigFourWinds [Yakuman BigFourWinds] w
+    ++ appendYakus isAllHonors [Yakuman AllHonors] w
+    ++ appendYakus isAllTerminals [Yakuman AllTerminals] w
+    ++ appendYakus isAllGreen [Yakuman AllGreen] w
+    ++ appendYakus isNineGates [Yakuman NineGates] w
+    ++ appendYakus isNineGates9Waits [Yakuman NineGates9Waits] w
+    ++ appendYakus isFourQuads [Yakuman FourQuads] w
+    ++ appendYakus isBlessingOfHeaven [Yakuman BlessingOfHeaven] w
+    ++ appendYakus isBlessingOfEarth [Yakuman BlessingOfEarth] w
+    ++ appendYakus isBlessingOfMan [Yakuman BlessingOfMan] w
+    ++ appendYakus isNagashiMangan [Yakuman NagashiMangan] w
+    ++ appendYakus isRiichi [Normal Riichi] w
+    ++ appendYakus isIppatsu [Normal Ippatsu] w
+    ++ appendYakus isClosedTsumo [Normal ClosedTsumo] w
+    ++ appendYakus isAllSimple [Normal AllSimple] w
+    ++ appendYakus isHonorTiles honorTilesYakus w
+    ++ appendYakus isSelfWindTiles [selfWindYakus] w
+    ++ appendYakus isNoPointsHand [Normal NoPointsHand] w
+    ++ appendYakus isTwinSequences [Normal TwinSequences] w
+    ++ appendYakus isDeadWallDraw [Normal DeadWallDraw] w
+    ++ appendYakus isRobbingAQuad [Normal RobbingAQuad] w
+    ++ appendYakus isUnderTheSea [Normal UnderTheSea] w
+    ++ appendYakus isUnderTheRiver [Normal UnderTheRiver] w
+    ++ appendYakus isDoubleRiichi [Normal DoubleRiichi] w
+    ++ appendYakus isSevenPairs [Normal SevenPairs] w
+    ++ appendYakus isAllTripletsYaku [Normal AllTriplets] w
+    ++ appendYakus isThreeClosedTriplets [Normal ThreeClosedTriplets] w
+    ++ appendYakus isThreeQuads [Normal ThreeQuads] w
+    ++ appendYakus isThreeMixedTriplets [Normal ThreeMixedTriplets] w
+    ++ appendYakus isAllTerminalsAndHonors [Normal AllTerminalsAndHonors] w
+    ++ appendYakus isLittleThreeDragons [Normal LittleThreeDragons] w
+    ++ appendYakus isThreeMixedSequences [Normal ThreeMixedSequences] w
+    ++ appendYakus isThreeMixedSequencesOpened [Normal ThreeMixedSequencesOpened] w
+    ++ appendYakus isFullStraight [Normal FullStraight] w
+    ++ appendYakus isFullStraightOpened [Normal FullStraightOpened] w
+    ++ appendYakus isCommonEnds [Normal CommonEnds] w
+    ++ appendYakus isCommonEndsOpened [Normal CommonEndsOpened] w
+    ++ appendYakus isDoubleTwinSequences [Normal DoubleTwinSequences] w
+    ++ appendYakus isHalfFlush [Normal HalfFlush] w
+    ++ appendYakus isHalfFlushOpened [Normal HalfFlushOpened] w
+    ++ appendYakus isCommonTerminals [Normal CommonTerminals] w
+    ++ appendYakus isCommonTerminalsOpened [Normal CommonTerminalsOpened] w
+    ++ appendYakus isFullFlush [Normal FullFlush] w
+    ++ appendYakus isFullFlushOpened [Normal FullFlushOpened] w
+    ++ [doraYaku]
   where
-    honorTilesDYakus = zipWith (\i t -> Normal HonorTiles t) [1 ..] (getHonorTiles w)
+    honorTilesYakus =
+      zipWith
+        (\_ t -> Normal (HonorTiles t))
+        [1 ..]
+        (getHonorTiles w)
+    selfWindYakus = Normal $ SelfWindTiles $ Wind $ selfWind w
+    doraYaku = Normal $ Dora $ dora w
 
-appendYakus :: (WinningHand -> Bool) -> Yaku -> WinningHand -> [Yaku]
+appendYakus :: (WinningHand -> Bool) -> [Yaku] -> WinningHand -> [Yaku]
 appendYakus cond yaku w
-  | cond w = [yaku]
+  | cond w = yaku
   | otherwise = []
 
--- getFus :: [Fu] -> WinningHand -> [Fu]
--- getFus fs w
---   | isClosedMeld (hand w) && riichiStatus w == SRiichi = fs : Normal Riichi
---   | otherwise = fs
+getFus :: WinningHand -> [Fu]
+getFus w
+  | isSevenPairs w = [SevenPairsBase]
+  | isNoPointsHand w && isTsumo w = [Base]
+  | isNoPointsHand w && not (isTsumo w) = [Base] ++ [ClosedRon]
+  | otherwise = [Base]
+
+--   ++ appendFus isOneSideWait [SingleWait] w
+-- ClosedRon -- 10 fu
+-- SevenPairsBase -- 25 fu (includes Tsumo)
+-- OpenNoPointsBase -- 30 fu
+-- Tsumo -- 2 fu
+-- SingleWait -- 2 fu
+-- OpenSimpleTriplet -- 2 fu
+-- ClosedSimpleTriplet -- 4 fu
+-- OpenSimpleQuad -- 8 fu
+-- ClosedSimpleQuad -- 16 fu
+-- OpenTerminalTriplet -- 4 fu
+-- ClosedTerminalTriplet -- 8 fu
+-- OpenTerminalQuad -- 16 fu
+-- ClosedTerminalQuad -- 32 fu
+-- DragonPair -- 2 fu
+-- WindPair -- 2 fu
+-- SelfWindPair -- 2 fu
+
+appendFus :: (WinningHand -> Bool) -> [Fu] -> WinningHand -> [Fu]
+appendFus cond fu w = undefined
 
 calcYakus :: [Yaku] -> Int
 calcYakus yakus

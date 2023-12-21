@@ -9,7 +9,16 @@ import Wall
 data Riichi = NoRiichi | SRiichi | DbRiichi
   deriving (Show, Ord, Eq)
 
-data BonusAgari = NoBonus | DeadWallDrawAgari | RobbingAQuadAgari | UnderTheSeaAgari | UnderTheRiverAgari
+data BonusAgari
+  = NoBonus
+  | DeadWallDrawAgari
+  | RobbingAQuadAgari
+  | UnderTheSeaAgari
+  | UnderTheRiverAgari
+  | NagashiManganAgari
+  | BlessingOfHeavenAgari
+  | BlessingOfEarthAgari
+  | BlessingOfManAgari
   deriving (Show, Ord, Eq)
 
 data WinningHand = WinningHand
@@ -17,12 +26,12 @@ data WinningHand = WinningHand
     winningTile :: Tile,
     winningMeld :: Meld,
     isTsumo :: Bool,
-    riichiStatus :: Riichi,
-    isIppatsu :: Bool,
-    bonusAragi :: BonusAgari,
     roundWind :: Wind,
     selfWind :: Wind,
-    dora :: Int
+    dora :: Int,
+    riichiStatus :: Riichi,
+    isIppatsu :: Bool,
+    bonusAragi :: BonusAgari
   }
   deriving (Show, Ord, Eq)
 
@@ -33,12 +42,12 @@ defaultWH =
       winningTile = Default,
       winningMeld = Triplet Default Default Default False,
       isTsumo = False,
-      riichiStatus = NoRiichi,
-      isIppatsu = False,
-      bonusAragi = NoBonus,
       roundWind = East,
       selfWind = East,
-      dora = 0
+      dora = 0,
+      riichiStatus = NoRiichi,
+      isIppatsu = False,
+      bonusAragi = NoBonus
     }
 
 -- copy-pasted from Data.List.Unique module by Volodymyr Yashchenko
@@ -52,10 +61,10 @@ isClosedHand w = all isClosedMeld (hand w)
 
 -- Riichi
 isRiichi :: WinningHand -> Bool
-isRiichi w = all isClosedMeld (hand w) && riichiStatus w == SRiichi
+isRiichi w = isClosedHand w && riichiStatus w == SRiichi
 
 isClosedTsumo :: WinningHand -> Bool
-isClosedTsumo w = all isClosedMeld (hand w) && isTsumo w
+isClosedTsumo w = isClosedHand w && isTsumo w
 
 -- Ippatsu / One-shot
 isIppatsuYaku :: WinningHand -> Bool
@@ -66,8 +75,8 @@ isUnderTheSea :: WinningHand -> Bool
 isUnderTheSea w = bonusAragi w == UnderTheSeaAgari
 
 -- Under the River
-isUndertheRiver :: WinningHand -> Bool
-isUndertheRiver w = bonusAragi w == UnderTheRiverAgari
+isUnderTheRiver :: WinningHand -> Bool
+isUnderTheRiver w = bonusAragi w == UnderTheRiverAgari
 
 -- Dead Wall Draw
 isDeadWallDraw :: WinningHand -> Bool
@@ -79,7 +88,7 @@ isRobbingAQuad w = bonusAragi w == RobbingAQuadAgari
 
 -- Double Riichi
 isDoubleRiichi :: WinningHand -> Bool
-isDoubleRiichi w = all isClosedMeld (hand w) && riichiStatus w == DbRiichi
+isDoubleRiichi w = isClosedHand w && riichiStatus w == DbRiichi
 
 -- Seven Pairs
 isSevenPairs :: WinningHand -> Bool
@@ -125,6 +134,9 @@ isThreeMixedSequences w =
           _ -> False
         _ -> False
 
+isThreeMixedSequencesOpened :: WinningHand -> Bool
+isThreeMixedSequencesOpened w = isClosedHand w && isThreeMixedSequences w
+
 -- Full Straight
 isFullStraight :: WinningHand -> Bool
 isFullStraight w = do
@@ -138,6 +150,9 @@ isFullStraight w = do
             _ -> False
         _ -> False
     _ -> False
+
+isFullStraightOpened :: WinningHand -> Bool
+isFullStraightOpened w = isClosedHand w && isFullStraight w
 
 -- All Triplets (not Four)
 isAllTripletsYaku :: WinningHand -> Bool
@@ -211,11 +226,17 @@ isCommonEnds :: WinningHand -> Bool
 isCommonEnds w =
   all isTerminalOrHonorMeld (hand w)
 
+isCommonEndsOpened :: WinningHand -> Bool
+isCommonEndsOpened w = isClosedHand w && isCommonEnds w
+
 -- Common Terminals
 isCommonTerminals :: WinningHand -> Bool
 isCommonTerminals w =
   all isTerminalMeld (hand w)
     && not (any isHonorMeld (hand w))
+
+isCommonTerminalsOpened :: WinningHand -> Bool
+isCommonTerminalsOpened w = isClosedHand w && isCommonTerminals w
 
 -- All Terminals and Honors
 isAllTerminalsAndHonors :: WinningHand -> Bool
@@ -237,11 +258,17 @@ isHalfFlush w =
    in length (nub $ filter (`elem` [Sou, Pin, Man]) melds) == 1
         && elem Honor melds
 
+isHalfFlushOpened :: WinningHand -> Bool
+isHalfFlushOpened w = isClosedHand w && isHalfFlush w
+
 -- Full Flush
 isFullFlush :: WinningHand -> Bool
 isFullFlush w =
   let melds = map suitOfMeld (hand w)
    in length (nub $ filter (`elem` [Sou, Pin, Man]) melds) == 1
+
+isFullFlushOpened :: WinningHand -> Bool
+isFullFlushOpened w = isClosedHand w && isFullFlush w
 
 -- Thirteen Orphans
 isThirteenOrphans :: WinningHand -> Bool
@@ -360,6 +387,20 @@ isFourQuads :: WinningHand -> Bool
 isFourQuads w =
   let quads = filterQuadMelds $ hand w
    in length quads == 4
+
+---- Special Conditions
+--
+isBlessingOfHeaven :: WinningHand -> Bool
+isBlessingOfHeaven w = bonusAragi w == BlessingOfHeavenAgari
+
+isBlessingOfEarth :: WinningHand -> Bool
+isBlessingOfEarth w = bonusAragi w == BlessingOfEarthAgari
+
+isBlessingOfMan :: WinningHand -> Bool
+isBlessingOfMan w = bonusAragi w == BlessingOfManAgari
+
+isNagashiMangan :: WinningHand -> Bool
+isNagashiMangan w = bonusAragi w == NagashiManganAgari
 
 -----------
 -- Fu Related
