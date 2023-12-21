@@ -193,6 +193,9 @@ isWindMeld = isXMeld isWindTile
 isDragonMeld :: Meld -> Bool
 isDragonMeld = isXMeld isDragonTile
 
+isSelfWindMeld :: Wind -> Meld -> Bool
+isSelfWindMeld w = isXMeld (isXWindTile w)
+
 isXMeld :: (Tile -> Bool) -> Meld -> Bool
 isXMeld x (Single t) = x t
 isXMeld x (Pair t1 _) = x t1

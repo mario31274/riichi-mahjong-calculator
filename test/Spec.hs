@@ -142,7 +142,6 @@ main = hspec do
         it "should return False for 33m1155p118s1277z8s" do
           let h = parse "33m1155p118s1277z8s"
               whs = getWinHandsByWinTile h
-          print whs
           map isSevenPairs whs `shouldMatchList` replicate (length whs) False
 
       describe "isNoPointsHand" do
@@ -318,16 +317,19 @@ main = hspec do
           map isFullFlush whs `shouldMatchList` replicate (length whs) True
 
       describe "isThirteenOrphans" do
-        it "should return True for 1m19p19s1234567z9m" do
-          let h = parse "1m19p19s1234567z9m"
+        it "should return True for 1m19p19s12234567z9m" do
+          let h = parse "1m19p19s12234567z9m"
               whs = getWinHandsByWinTile h
+          print whs
           map isThirteenOrphans whs
             `shouldMatchList` replicate (length whs) True
+          length whs `shouldNotBe` 0
         it "should return False for 19m19p19s12345672z" do
-          let h = parse "1m19p19s1234567z9m"
+          let h = parse "19m19p19s12345672z"
               whs = getWinHandsByWinTile h
           map isThirteenOrphans whs
             `shouldMatchList` replicate (length whs) False
+          length whs `shouldNotBe` 0
 
       describe "isThirteenOrphans13Waits" do
         it "should return True for 19m19p19s12345672z" do
@@ -335,11 +337,13 @@ main = hspec do
               whs = getWinHandsByWinTile h
           map isThirteenOrphans13Waits whs
             `shouldMatchList` replicate (length whs) True
-        it "should return False for 1m19p19s1234567z9m" do
-          let h = parse "1m19p19s1234567z9m"
+          length whs `shouldNotBe` 0
+        it "should return False for 1m19p19s12234567z9m" do
+          let h = parse "1m19p19s12234567z9m"
               whs = getWinHandsByWinTile h
           map isThirteenOrphans13Waits whs
             `shouldMatchList` replicate (length whs) False
+          length whs `shouldNotBe` 0
 
       describe "isFourClosedTriplets" do
         it "should return True for 44488m999p222s11z8m" do

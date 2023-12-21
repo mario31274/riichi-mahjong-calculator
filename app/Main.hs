@@ -1,6 +1,7 @@
 module Main where
 
-import Data.List (nub, sort)
+import Calculator
+import Data.List (delete, nub, sort)
 import Data.Maybe
 import Hand
 import Meld
@@ -45,20 +46,23 @@ main = do
   -- print $ matchIntoMelds hand9
   -- print $ uniq $ sort $ map sort $ validMatches $ matchIntoMelds hand9
   -- print $ isValidWinningHand hand9
-  let handS1 = "22233344455566m"
-  let handS2 = "12345667778886p"
-  let handS3 = "24m556677p999s66z3m"
-  let handS4 = "33m333p678p333s33z3m"
-  let handS5 = "11123445679998m"
+  -- let handS1 = "22233344455566m"
+  --     handS2 = "12345667778886p"
+  --     handS3 = "24m556677p999s66z3m"
+  --     handS4 = "33m333p678p333s33z3m"
+  --     handS5 = "11123445679998m"
+  --     handS6 = "11123456789991p"
 
-  let hand = parse handS5
+  --     h = parse handS6
 
-  -- let mss = uniq $ sort $ map sort $ validMatches $ matchIntoMelds hand
-  -- print mss
-  -- let found = findWinningMelds' mss (Numeric 6 Pin)
-  -- print found
-  -- print $ validMatches $ matchIntoMelds hand
+  -- print $ getWinHandsByWinTile h
 
-  print $ getWinHandsByWinTile hand
-
--- print $ isClosedHand $ fst hand2
+  -- let whs = getWinHandsByWinTile h
+  --     w = head whs
+  --     tiles = concatMap meldToTiles $ hand w
+  --     suit = suitOfMeld $ winningMeld w
+  --     toRemove = getNineGateTiles suit
+  --     remain = delete (winningTile w) tiles
+  -- print $ remain
+  -- print $ isClosedHand $ fst hand2
+  print $ calcYakus [Yakuman FourClosedTripletsSingleWait, Yakuman AllHonors, Yakuman BigFourWinds, Yakuman FourQuads]

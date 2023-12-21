@@ -6,10 +6,10 @@ import Meld
 import Tile
 import Wall
 
-data Riichi = NoRiichi | Riichi | DbRiichi
+data Riichi = NoRiichi | SRiichi | DbRiichi
   deriving (Show, Ord, Eq)
 
-data BonusAgari = NoBonus | DeadWallDraw | RobbedAQuad | UnderTheSea | UnderTheRiver
+data BonusAgari = NoBonus | DeadWallDrawAgari | RobbingAQuadAgari | UnderTheSeaAgari | UnderTheRiverAgari
   deriving (Show, Ord, Eq)
 
 data WinningHand = WinningHand
@@ -49,6 +49,37 @@ isClosedHand :: WinningHand -> Bool
 isClosedHand w = all isClosedMeld (hand w)
 
 -- Yakus (Scoring Rules)
+
+-- Riichi
+isRiichi :: WinningHand -> Bool
+isRiichi w = all isClosedMeld (hand w) && riichiStatus w == SRiichi
+
+isClosedTsumo :: WinningHand -> Bool
+isClosedTsumo w = all isClosedMeld (hand w) && isTsumo w
+
+-- Ippatsu / One-shot
+isIppatsuYaku :: WinningHand -> Bool
+isIppatsuYaku w = (riichiStatus w /= NoRiichi) && isIppatsu w
+
+-- Under the Sea
+isUnderTheSea :: WinningHand -> Bool
+isUnderTheSea w = bonusAragi w == UnderTheSeaAgari
+
+-- Under the River
+isUndertheRiver :: WinningHand -> Bool
+isUndertheRiver w = bonusAragi w == UnderTheRiverAgari
+
+-- Dead Wall Draw
+isDeadWallDraw :: WinningHand -> Bool
+isDeadWallDraw w = bonusAragi w == DeadWallDrawAgari
+
+-- Robbing a Quad
+isRobbingAQuad :: WinningHand -> Bool
+isRobbingAQuad w = bonusAragi w == RobbingAQuadAgari
+
+-- Double Riichi
+isDoubleRiichi :: WinningHand -> Bool
+isDoubleRiichi w = all isClosedMeld (hand w) && riichiStatus w == DbRiichi
 
 -- Seven Pairs
 isSevenPairs :: WinningHand -> Bool
@@ -151,6 +182,11 @@ isThreeQuads w =
 isAllSimple :: WinningHand -> Bool
 isAllSimple w = all (all isNonTerminalTile . meldToTiles) (hand w)
 
+isSelfWindTiles :: WinningHand -> Bool
+isSelfWindTiles w =
+  let melds = filterTripletOrQuadMelds $ hand w
+   in any (isSelfWindMeld (selfWind w)) melds
+
 -- Honor Tiles
 isHonorTiles :: WinningHand -> Bool
 isHonorTiles w =
@@ -212,14 +248,14 @@ isThirteenOrphans :: WinningHand -> Bool
 isThirteenOrphans w =
   all isTerminalOrHonorMeld (hand w)
     && length (filterSingle (hand w)) == 12
-    && winningTile w `notElem` meldToTiles (winningMeld w)
+    && not (isPair (winningMeld w))
 
 -- Thirteen Orphans 13-wait
 isThirteenOrphans13Waits :: WinningHand -> Bool
 isThirteenOrphans13Waits w =
   all isTerminalOrHonorMeld (hand w)
     && length (filterSingle (hand w)) == 12
-    && winningTile w `elem` meldToTiles (winningMeld w)
+    && isPair (winningMeld w)
 
 -- Four Concealed Triplets
 isFourClosedTriplets :: WinningHand -> Bool
@@ -277,16 +313,47 @@ isAllGreen w =
 
 -- Nine Gates
 isNineGates :: WinningHand -> Bool
-isNineGates w = undefined
-
--- isNineGates w =
---   let tiles = concatMap meldToTiles $ hand w
---       remain = filter (\x )
---   in
+isNineGates w =
+  let tiles = concatMap meldToTiles $ hand w
+      suit = suitOfMeld $ winningMeld w
+      toRemove = getNineGateTiles suit
+      remain = deleteList toRemove tiles
+   in length remain == 1
 
 -- Nine Gates 9-wait
 isNineGates9Waits :: WinningHand -> Bool
-isNineGates9Waits w = undefined
+isNineGates9Waits w =
+  let tiles = concatMap meldToTiles $ hand w
+      suit = suitOfMeld $ winningMeld w
+      toRemove = getNineGateTiles suit
+      remain = sort (delete (winningTile w) tiles)
+   in remain == toRemove
+
+-- Helper functions for Nine Gates
+deleteList :: (Eq a) => [a] -> [a] -> [a]
+deleteList [] ys = ys
+deleteList _ [] = []
+deleteList (x : xs) ys =
+  let ys' = delete x ys
+   in deleteList xs ys'
+
+getNineGateTiles :: Suit -> [Tile]
+getNineGateTiles Honor = []
+getNineGateTiles suit =
+  [ Numeric 1 suit,
+    Numeric 1 suit,
+    Numeric 1 suit,
+    Numeric 2 suit,
+    Numeric 3 suit,
+    Numeric 4 suit,
+    Numeric 5 suit,
+    Numeric 6 suit,
+    Numeric 7 suit,
+    Numeric 8 suit,
+    Numeric 9 suit,
+    Numeric 9 suit,
+    Numeric 9 suit
+  ]
 
 -- Four Quads
 isFourQuads :: WinningHand -> Bool

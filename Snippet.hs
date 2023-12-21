@@ -280,3 +280,5 @@ main = do
   -- print $ groupMeldStrings (snd cs)
 
   -- print $ groupTileAndMeldStrings "45678p123s88m3pC4#CpK456p"
+
+-- "33m067p12340678s6s"

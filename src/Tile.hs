@@ -108,6 +108,11 @@ isWindTile t = case t of
   Wind _ -> True
   _ -> False
 
+isXWindTile :: Wind -> Tile -> Bool
+isXWindTile w t = case t of
+  Wind w -> True
+  _ -> False
+
 isGreenTile :: Tile -> Bool
 isGreenTile t = case t of
   Numeric 2 Sou -> True
