@@ -104,7 +104,9 @@ matchWith meld [] = Nothing
 validMatches :: [([Meld], [Tile])] -> [[Meld]]
 validMatches [] = []
 validMatches (match : matches) = case match of
-  (m, []) -> m : validMatches matches
+  (ms, []) -> case isValidWinningMelds ms of
+    True -> ms : validMatches matches
+    False -> validMatches matches
   _ -> validMatches matches
 
 findTileInMelds :: [Meld] -> Tile -> Maybe Meld
@@ -113,8 +115,8 @@ findTileInMelds (m : ms) t
   | t `isTileInMeld` m = Just m
   | otherwise = findTileInMelds ms t
 
-isValidWinningHand :: Hand -> Bool
-isValidWinningHand (ts, ms)
+isValidHand :: Hand -> Bool
+isValidHand (ts, ms)
   | not $ noTilesMoreThanFour (ts, ms) = False
   | null ms = length ts == 14
   | length ms == 1 = length ts == 11
@@ -123,6 +125,9 @@ isValidWinningHand (ts, ms)
   | length ms == 4 = length ts == 2
   | otherwise = False
 
+isValidWinningMelds :: [Meld] -> Bool
+isValidWinningMelds ms = length ms == 5 || length ms == 7 || length ms == 13
+
 noTilesMoreThanFour :: Hand -> Bool
 noTilesMoreThanFour (ts, ms) = do
   let allTiles = ts ++ concatMap meldToTiles ms
@@ -130,7 +135,7 @@ noTilesMoreThanFour (ts, ms) = do
 
 getWinHandsByWinTile :: Hand -> [WinningHand]
 getWinHandsByWinTile hand
-  | not $ isValidWinningHand hand = []
+  | not $ isValidHand hand = []
   | otherwise =
       let mss = map sort $ validMatches (matchIntoMelds hand)
           wt = last $ fst hand

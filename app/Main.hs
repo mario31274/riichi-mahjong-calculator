@@ -1,7 +1,7 @@
 module Main where
 
 import Calculator
-import Data.List (delete, nub, sort)
+import Data.List
 import Data.Maybe
 import Hand
 import Meld
@@ -17,3 +17,4 @@ main = do
   print $ hand
   print $ "The hand can be split into the following melds:"
   print $ map sort $ validMatches $ matchIntoMelds hand
+  print $ getWinHandsByWinTile hand
