@@ -64,6 +64,13 @@ suitOfMeld (Triplet (Numeric _ s) _ _ _) = s
 suitOfMeld (Quad (Numeric _ s) _ _ _ _) = s
 suitOfMeld _ = Honor -- non numeric tiles
 
+windOfMeld :: Meld -> Maybe Wind
+windOfMeld (Pair (Wind w) _) = Just w
+windOfMeld (Run (Wind w) _ _ _) = Just w
+windOfMeld (Triplet (Wind w) _ _ _) = Just w
+windOfMeld (Quad (Wind w) _ _ _ _) = Just w
+windOfMeld _ = Nothing
+
 isTileInMeld :: Tile -> Meld -> Bool
 isTileInMeld t m = t `elem` meldToTiles m
 
@@ -129,6 +136,7 @@ isClosedMeld m = case m of
   Run _ _ _ o -> not o
   Triplet _ _ _ o -> not o
   Quad _ _ _ _ o -> not o
+  _ -> True
 
 isClosedRun :: Meld -> Bool
 isClosedRun m = case m of

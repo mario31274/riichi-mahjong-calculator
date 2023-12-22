@@ -99,7 +99,7 @@ isNoPointsHand :: WinningHand -> Bool
 isNoPointsHand w =
   let threes = filter3TileMelds $ hand w
    in all isRun threes
-        && isTwoSideWait (winningMeld w) (winningTile w)
+        && isTwoSideWait w
 
 -- Twin Sequences
 isTwinSequences :: WinningHand -> Bool
@@ -134,8 +134,11 @@ isThreeMixedSequences w =
           _ -> False
         _ -> False
 
+isThreeMixedSequencesClosed :: WinningHand -> Bool
+isThreeMixedSequencesClosed w = isClosedHand w && isThreeMixedSequences w
+
 isThreeMixedSequencesOpened :: WinningHand -> Bool
-isThreeMixedSequencesOpened w = isClosedHand w && isThreeMixedSequences w
+isThreeMixedSequencesOpened w = not (isClosedHand w) && isThreeMixedSequences w
 
 -- Full Straight
 isFullStraight :: WinningHand -> Bool
@@ -151,14 +154,19 @@ isFullStraight w = do
         _ -> False
     _ -> False
 
+isFullStraightClosed :: WinningHand -> Bool
+isFullStraightClosed w = isClosedHand w && isFullStraight w
+
 isFullStraightOpened :: WinningHand -> Bool
-isFullStraightOpened w = isClosedHand w && isFullStraight w
+isFullStraightOpened w = not (isClosedHand w) && isFullStraight w
 
 -- All Triplets (not Four)
 isAllTripletsYaku :: WinningHand -> Bool
 isAllTripletsYaku w =
   let threes = filter3TileMelds $ hand w
-   in all isTripletOrQuad threes -- && not isFourClosedTriplets w
+   in not (null threes)
+        && all isTripletOrQuad threes
+        && not (isFourClosedTriplets w)
 
 -- Three Concealed Triplets
 isThreeClosedTriplets :: WinningHand -> Bool
@@ -195,7 +203,7 @@ isThreeQuads w =
 
 -- All simple
 isAllSimple :: WinningHand -> Bool
-isAllSimple w = all (all isNonTerminalTile . meldToTiles) (hand w)
+isAllSimple w = all isNonTerminalMeld (hand w)
 
 isSelfWindTiles :: WinningHand -> Bool
 isSelfWindTiles w =
@@ -208,26 +216,16 @@ isHonorTiles w =
   let quads = filterTripletOrQuadMelds $ hand w
    in any isHonorMeld quads
 
--- returns the list of honor tiles that led to the Honor Tiles Yaku
-getHonorTiles :: WinningHand -> [Tile]
-getHonorTiles w =
-  if isHonorTiles w
-    then
-      ( let quads = filterTripletOrQuadMelds $ hand w
-         in concatMap
-              ( \m -> ([head (meldToTiles m) | suitOfMeld m == Honor])
-              )
-              quads
-      )
-    else []
-
 -- Common Ends
 isCommonEnds :: WinningHand -> Bool
 isCommonEnds w =
   all isTerminalOrHonorMeld (hand w)
 
+isCommonEndsClosed :: WinningHand -> Bool
+isCommonEndsClosed w = isClosedHand w && isCommonEnds w
+
 isCommonEndsOpened :: WinningHand -> Bool
-isCommonEndsOpened w = isClosedHand w && isCommonEnds w
+isCommonEndsOpened w = not (isClosedHand w) && isCommonEnds w
 
 -- Common Terminals
 isCommonTerminals :: WinningHand -> Bool
@@ -235,8 +233,11 @@ isCommonTerminals w =
   all isTerminalMeld (hand w)
     && not (any isHonorMeld (hand w))
 
+isCommonTerminalsClosed :: WinningHand -> Bool
+isCommonTerminalsClosed w = isClosedHand w && isCommonTerminals w
+
 isCommonTerminalsOpened :: WinningHand -> Bool
-isCommonTerminalsOpened w = isClosedHand w && isCommonTerminals w
+isCommonTerminalsOpened w = not (isClosedHand w) && isCommonTerminals w
 
 -- All Terminals and Honors
 isAllTerminalsAndHonors :: WinningHand -> Bool
@@ -257,18 +258,26 @@ isHalfFlush w =
   let melds = map suitOfMeld (hand w)
    in length (nub $ filter (`elem` [Sou, Pin, Man]) melds) == 1
         && elem Honor melds
+        && isClosedHand w
+
+isHalfFlushClosed :: WinningHand -> Bool
+isHalfFlushClosed w = isClosedHand w && isHalfFlush w
 
 isHalfFlushOpened :: WinningHand -> Bool
-isHalfFlushOpened w = isClosedHand w && isHalfFlush w
+isHalfFlushOpened w = not (isClosedHand w) && isHalfFlush w
 
 -- Full Flush
 isFullFlush :: WinningHand -> Bool
 isFullFlush w =
   let melds = map suitOfMeld (hand w)
    in length (nub $ filter (`elem` [Sou, Pin, Man]) melds) == 1
+        && isClosedHand w
+
+isFullFlushClosed :: WinningHand -> Bool
+isFullFlushClosed w = isClosedHand w && isFullFlush w
 
 isFullFlushOpened :: WinningHand -> Bool
-isFullFlushOpened w = isClosedHand w && isFullFlush w
+isFullFlushOpened w = not (isClosedHand w) && isFullFlush w
 
 -- Thirteen Orphans
 isThirteenOrphans :: WinningHand -> Bool
@@ -406,32 +415,106 @@ isNagashiMangan w = bonusAragi w == NagashiManganAgari
 -- Fu Related
 -- Two-side Wait, if meld is open then return False
 -- (Winning tiles can't be inside an opened meld)
-isTwoSideWait :: Meld -> Tile -> Bool
-isTwoSideWait (Run t1 t2 t3 False) t =
-  (t == t1 && not (isTerminalTile t3)) || (t == t3 && not (isTerminalTile t1))
-isTwoSideWait (Triplet t1 t2 t3 False) t = True
-isTwoSideWait (Pair _ _) _ = False
-isTwoSideWait _ _ = False
+isTwoSideWait :: WinningHand -> Bool
+isTwoSideWait w =
+  let t = winningTile w
+   in case winningMeld w of
+        (Run t1 t2 t3 False) ->
+          (t == t1 && not (isTerminalTile t3))
+            || (t == t3 && not (isTerminalTile t1))
+        (Triplet t1 t2 t3 False) -> True
+        (Pair _ _) -> False
+        _ -> False
 
-isOneSideWait :: Meld -> Tile -> Bool
-isOneSideWait (Run _ t2 _ False) t = t == t2
-isOneSideWait (Pair _ _) _ = True
-isOneSideWait _ _ = False
+isOneSideWait :: WinningHand -> Bool
+isOneSideWait w =
+  let t = winningTile w
+   in case winningMeld w of
+        (Run _ t2 _ False) -> t == t2
+        (Pair _ _) -> True
+        _ -> False
 
-isDragonPair :: Meld -> Bool
-isDragonPair (Pair t1 _) = case t1 of
-  (Dragon _) -> True
-  _ -> False
-isDragonPair _ = False
+isClosedRon :: WinningHand -> Bool
+isClosedRon w = isClosedHand w && not (isTsumo w)
 
-isWindPair :: Meld -> Bool
-isWindPair (Pair t1 _) = case t1 of
-  (Wind _) -> True
-  _ -> False
-isWindPair _ = False
+isOpenNoPoints :: WinningHand -> Bool
+isOpenNoPoints w = isNoPointsHand w && not (isClosedHand w)
 
-isSelfWindPair :: Meld -> Wind -> Bool
-isSelfWindPair (Pair t1 _) wind = case t1 of
-  (Wind w) -> w == wind
-  _ -> False
-isSelfWindPair _ _ = False
+hasOpenSimpleTriplet :: WinningHand -> Int
+hasOpenSimpleTriplet = hasTriplet (not . isClosedMeld) isNonTerminalMeld (not . isTsumo)
+
+hasClosedSimpleTriplet :: WinningHand -> Int
+hasClosedSimpleTriplet = hasTriplet isClosedMeld isNonTerminalMeld isTsumo
+
+hasOpenTerminalTriplet :: WinningHand -> Int
+hasOpenTerminalTriplet = hasTriplet (not . isClosedMeld) isTerminalOrHonorMeld (not . isTsumo)
+
+hasClosedTerminalTriplet :: WinningHand -> Int
+hasClosedTerminalTriplet = hasTriplet isClosedMeld isTerminalOrHonorMeld isTsumo
+
+hasTriplet :: (Meld -> Bool) -> (Meld -> Bool) -> (WinningHand -> Bool) -> WinningHand -> Int
+hasTriplet openCond terminalCond tsumoCond w =
+  let meldsInHand = delete (winningMeld w) (hand w)
+   in length
+        ( filter
+            ( \m ->
+                isTriplet m
+                  && openCond m
+                  && terminalCond m
+            )
+            meldsInHand
+        )
+        + if isTriplet (winningMeld w)
+          && tsumoCond w
+          && terminalCond (winningMeld w)
+          then 1
+          else 0
+
+hasOpenSimpleQuad :: WinningHand -> Int
+hasOpenSimpleQuad = hasQuad (not . isClosedMeld) isNonTerminalMeld
+
+hasClosedSimpleQuad :: WinningHand -> Int
+hasClosedSimpleQuad = hasQuad isClosedMeld isNonTerminalMeld
+
+hasOpenTerminalQuad :: WinningHand -> Int
+hasOpenTerminalQuad = hasQuad (not . isClosedMeld) isTerminalOrHonorMeld
+
+hasClosedTerminalQuad :: WinningHand -> Int
+hasClosedTerminalQuad = hasQuad isClosedMeld isTerminalOrHonorMeld
+
+hasQuad :: (Meld -> Bool) -> (Meld -> Bool) -> WinningHand -> Int
+hasQuad openCond terminalCond w =
+  let meldsInHand = hand w
+   in length
+        ( filter
+            ( \m ->
+                isQuad m
+                  && openCond m
+                  && isNonTerminalMeld m
+            )
+            meldsInHand
+        )
+
+isDragonPair :: WinningHand -> Bool
+isDragonPair w =
+  let t = winningTile w
+   in case winningMeld w of
+        (Pair t1 _) -> isDragonTile t1
+        _ -> False
+
+isWindPair :: WinningHand -> Bool
+isWindPair w =
+  let t = winningTile w
+   in case winningMeld w of
+        (Pair t1 _) -> isWindTile t1
+        _ -> False
+
+isSelfWindPair :: WinningHand -> Bool
+isSelfWindPair w =
+  let t = winningTile w
+      wind = selfWind w
+   in case winningMeld w of
+        (Pair t1 _) -> case t1 of
+          (Wind w) -> w == wind
+          _ -> False
+        _ -> False

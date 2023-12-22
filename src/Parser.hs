@@ -11,9 +11,6 @@ parse s =
   let (tss, mss) = groupTileAndMeldStrings s
    in (parseMaybe tss getSingleTile, parseMaybe mss getOpenedMeld)
 
-sanitizeInputForTiles :: String -> String
-sanitizeInputForTiles = filter (`elem` ['1' .. '9'] ++ ['s', 'p', 'm', 'z', 'C', 'P', 'K', 'k'])
-
 parseMaybe :: [[Char]] -> ([Char] -> Maybe a) -> [a]
 parseMaybe [] _ = []
 parseMaybe (cs : css) p =

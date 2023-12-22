@@ -17,7 +17,7 @@ data Wind = East | South | West | North
   deriving (Eq, Enum, Bounded, Ord, Show)
 
 data Dragon = White | Green | Red
-  deriving (Eq, Enum, Bounded, Ord)
+  deriving (Eq, Enum, Bounded, Ord, Show)
 
 data Tile = Numeric Int Suit | Wind Wind | Dragon Dragon | Default
   deriving (Eq)

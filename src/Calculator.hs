@@ -1,274 +1,288 @@
 module Calculator where
 
+import Data.Char
 import Hand
-import Meld
+import Meld (Meld (Single))
+import Parser
+import Player
 import Rule
+import Score
+import System.Exit
+import Text.Read (readMaybe)
 import Tile
+import Wall
 
-type Calculator a = String -> IO a
+type Prompt a = String -> IO a
 
--- The two metrics for calculating final score
-type HanFu = (Int, Int)
+data Option = StartCalculator | StartGame
 
-data Yaku = Normal Normal | Yakuman Yakuman
+data Move = Discard [Int]
+  deriving (Show, Eq)
 
-data Normal
-  = -- 1 Han yakus
-    Riichi
-  | Ippatsu
-  | ClosedTsumo
-  | AllSimple
-  | HonorTiles Tile
-  | SelfWindTiles Tile
-  | NoPointsHand
-  | TwinSequences
-  | DeadWallDraw
-  | RobbingAQuad
-  | UnderTheSea
-  | UnderTheRiver
-  | -- 2 Han yakus
-    DoubleRiichi
-  | SevenPairs
-  | AllTriplets
-  | ThreeClosedTriplets
-  | ThreeQuads
-  | ThreeMixedTriplets
-  | AllTerminalsAndHonors
-  | LittleThreeDragons
-  | -- 2 Han yakus but 1 if opened
-    ThreeMixedSequences
-  | ThreeMixedSequencesOpened
-  | FullStraight
-  | FullStraightOpened
-  | CommonEnds
-  | CommonEndsOpened
-  | -- 3 Han yakus
-    DoubleTwinSequences
-  | -- 3 Han yakus but 2 if opened
-    HalfFlush
-  | HalfFlushOpened
-  | CommonTerminals
-  | CommonTerminalsOpened
-  | -- 6 Han yakus
-    FullFlush
-  | FullFlushOpened
-  | Dora Int
+-- openPosition = 34*(3-(d+2)%4)+d*2
+data Board = Board
+  { player1 :: Player,
+    player2 :: Player,
+    player3 :: Player,
+    player4 :: Player,
+    wall :: Wall,
+    round :: Wind,
+    player1Wind :: Wind,
+    counterSticks :: Int
+  }
+  deriving (Show)
 
-data Yakuman
-  = -- Forced Mankan
-    NagashiMangan
-  | -- Limit / Yakuman yakus
-    ThirteenOrphans
-  | ThirteenOrphans13Waits
-  | FourClosedTriplets
-  | FourClosedTripletsSingleWait
-  | BigThreeDragons
-  | LittleFourWinds
-  | BigFourWinds
-  | AllHonors
-  | AllTerminals
-  | AllGreen
-  | NineGates
-  | NineGates9Waits
-  | FourQuads
-  | BlessingOfHeaven
-  | BlessingOfEarth
-  | BlessingOfMan
+data Calculator a = Calculator
+  { toBeCalc :: [WinningHand],
+    results :: [Result],
+    ask :: a
+  }
 
-data Fu
-  = Base -- 20 fu
-  | ClosedRon -- 10 fu
-  | SevenPairsBase -- 25 fu (includes Tsumo)
-  | OpenNoPointsBase -- 30 fu
-  | Tsumo -- 2 fu
-  | SingleWait -- 2 fu
-  | OpenSimpleTriplet -- 2 fu
-  | ClosedSimpleTriplet -- 4 fu
-  | OpenSimpleQuad -- 8 fu
-  | ClosedSimpleQuad -- 16 fu
-  | OpenTerminalTriplet -- 4 fu
-  | ClosedTerminalTriplet -- 8 fu
-  | OpenTerminalQuad -- 16 fu
-  | ClosedTerminalQuad -- 32 fu
-  | DragonPair -- 2 fu
-  | WindPair -- 2 fu
-  | SelfWindPair -- 2 fu
+sanitizeAnswer :: Prompt String -> Prompt String
+sanitizeAnswer prompt question = do
+  ans <- prompt question
+  return (trimLeadingSpaces (trimTrailingSpaces ans))
 
-calc :: [WinningHand] -> [([Yaku], [Fu], (Int, Int), Int)]
-calc hand = undefined
-
--- return a list of Yakus and Fu's of a winning hand
-calcOneWinningHand :: WinningHand -> ([Yaku], [Fu])
-calcOneWinningHand w = undefined
-
-calcYakuAndFu :: WinningHand -> ([Yaku], [Fu]) -> (Int, Int)
-calcYakuAndFu w (yakus, fus) = undefined
-
-getYakus :: WinningHand -> [Yaku]
-getYakus w =
-  appendYakus isThirteenOrphans [Yakuman ThirteenOrphans] w
-    ++ appendYakus isThirteenOrphans13Waits [Yakuman ThirteenOrphans13Waits] w
-    ++ appendYakus isFourClosedTriplets [Yakuman FourClosedTriplets] w
-    ++ appendYakus isFourClosedTripletsSingleWait [Yakuman FourClosedTripletsSingleWait] w
-    ++ appendYakus isBigThreeDragons [Yakuman BigThreeDragons] w
-    ++ appendYakus isLittleFourWinds [Yakuman LittleFourWinds] w
-    ++ appendYakus isBigFourWinds [Yakuman BigFourWinds] w
-    ++ appendYakus isAllHonors [Yakuman AllHonors] w
-    ++ appendYakus isAllTerminals [Yakuman AllTerminals] w
-    ++ appendYakus isAllGreen [Yakuman AllGreen] w
-    ++ appendYakus isNineGates [Yakuman NineGates] w
-    ++ appendYakus isNineGates9Waits [Yakuman NineGates9Waits] w
-    ++ appendYakus isFourQuads [Yakuman FourQuads] w
-    ++ appendYakus isBlessingOfHeaven [Yakuman BlessingOfHeaven] w
-    ++ appendYakus isBlessingOfEarth [Yakuman BlessingOfEarth] w
-    ++ appendYakus isBlessingOfMan [Yakuman BlessingOfMan] w
-    ++ appendYakus isNagashiMangan [Yakuman NagashiMangan] w
-    ++ appendYakus isRiichi [Normal Riichi] w
-    ++ appendYakus isIppatsu [Normal Ippatsu] w
-    ++ appendYakus isClosedTsumo [Normal ClosedTsumo] w
-    ++ appendYakus isAllSimple [Normal AllSimple] w
-    ++ appendYakus isHonorTiles honorTilesYakus w
-    ++ appendYakus isSelfWindTiles [selfWindYakus] w
-    ++ appendYakus isNoPointsHand [Normal NoPointsHand] w
-    ++ appendYakus isTwinSequences [Normal TwinSequences] w
-    ++ appendYakus isDeadWallDraw [Normal DeadWallDraw] w
-    ++ appendYakus isRobbingAQuad [Normal RobbingAQuad] w
-    ++ appendYakus isUnderTheSea [Normal UnderTheSea] w
-    ++ appendYakus isUnderTheRiver [Normal UnderTheRiver] w
-    ++ appendYakus isDoubleRiichi [Normal DoubleRiichi] w
-    ++ appendYakus isSevenPairs [Normal SevenPairs] w
-    ++ appendYakus isAllTripletsYaku [Normal AllTriplets] w
-    ++ appendYakus isThreeClosedTriplets [Normal ThreeClosedTriplets] w
-    ++ appendYakus isThreeQuads [Normal ThreeQuads] w
-    ++ appendYakus isThreeMixedTriplets [Normal ThreeMixedTriplets] w
-    ++ appendYakus isAllTerminalsAndHonors [Normal AllTerminalsAndHonors] w
-    ++ appendYakus isLittleThreeDragons [Normal LittleThreeDragons] w
-    ++ appendYakus isThreeMixedSequences [Normal ThreeMixedSequences] w
-    ++ appendYakus isThreeMixedSequencesOpened [Normal ThreeMixedSequencesOpened] w
-    ++ appendYakus isFullStraight [Normal FullStraight] w
-    ++ appendYakus isFullStraightOpened [Normal FullStraightOpened] w
-    ++ appendYakus isCommonEnds [Normal CommonEnds] w
-    ++ appendYakus isCommonEndsOpened [Normal CommonEndsOpened] w
-    ++ appendYakus isDoubleTwinSequences [Normal DoubleTwinSequences] w
-    ++ appendYakus isHalfFlush [Normal HalfFlush] w
-    ++ appendYakus isHalfFlushOpened [Normal HalfFlushOpened] w
-    ++ appendYakus isCommonTerminals [Normal CommonTerminals] w
-    ++ appendYakus isCommonTerminalsOpened [Normal CommonTerminalsOpened] w
-    ++ appendYakus isFullFlush [Normal FullFlush] w
-    ++ appendYakus isFullFlushOpened [Normal FullFlushOpened] w
-    ++ [doraYaku]
+trimLeadingSpaces :: String -> String
+trimLeadingSpaces s
+  | null s = s
+  | not (isSpace c) = s
+  | otherwise = trimLeadingSpaces (tail s)
   where
-    honorTilesYakus =
-      zipWith
-        (\_ t -> Normal (HonorTiles t))
-        [1 ..]
-        (getHonorTiles w)
-    selfWindYakus = Normal $ SelfWindTiles $ Wind $ selfWind w
-    doraYaku = Normal $ Dora $ dora w
+    c = head s
 
-appendYakus :: (WinningHand -> Bool) -> [Yaku] -> WinningHand -> [Yaku]
-appendYakus cond yaku w
-  | cond w = yaku
-  | otherwise = []
+seekNonSpace :: String -> Maybe (String, Char, String)
+seekNonSpace s
+  | null s = Nothing
+  | not (isSpace c) = Just ("", c, tail s)
+  | otherwise =
+      case result of
+        Just (w, c', r) -> Just (c : w, c', r)
+        Nothing -> Nothing
+  where
+    c = head s
+    result = seekNonSpace (tail s)
 
-getFus :: WinningHand -> [Fu]
-getFus w
-  | isSevenPairs w = [SevenPairsBase]
-  | isNoPointsHand w && isTsumo w = [Base]
-  | isNoPointsHand w && not (isTsumo w) = [Base] ++ [ClosedRon]
-  | otherwise = [Base]
+trimTrailingSpaces :: String -> String
+trimTrailingSpaces s
+  | null s = s
+  | otherwise =
+      case seekNonSpace s of
+        Just (w, c, r) -> w ++ [c] ++ trimTrailingSpaces r
+        Nothing -> ""
 
---   ++ appendFus isOneSideWait [SingleWait] w
--- ClosedRon -- 10 fu
--- SevenPairsBase -- 25 fu (includes Tsumo)
--- OpenNoPointsBase -- 30 fu
--- Tsumo -- 2 fu
--- SingleWait -- 2 fu
--- OpenSimpleTriplet -- 2 fu
--- ClosedSimpleTriplet -- 4 fu
--- OpenSimpleQuad -- 8 fu
--- ClosedSimpleQuad -- 16 fu
--- OpenTerminalTriplet -- 4 fu
--- ClosedTerminalTriplet -- 8 fu
--- OpenTerminalQuad -- 16 fu
--- ClosedTerminalQuad -- 32 fu
--- DragonPair -- 2 fu
--- WindPair -- 2 fu
--- SelfWindPair -- 2 fu
+sanitizeInputForTiles :: String -> String
+sanitizeInputForTiles = filter (`elem` ['1' .. '9'] ++ ['s', 'p', 'm', 'z', 'C', 'P', 'K', 'k'])
 
-appendFus :: (WinningHand -> Bool) -> [Fu] -> WinningHand -> [Fu]
-appendFus cond fu w = undefined
+parseOption :: String -> Maybe Option
+parseOption s
+  | s == "1" = Just StartCalculator
+  | s == "2" = Just StartGame
+  | otherwise = Nothing
 
-calcYakus :: [Yaku] -> Int
-calcYakus yakus
-  | any isYakumanYaku yakus = sum (map convertToHans (filter isYakumanYaku yakus))
-  | otherwise = sum (map convertToHans yakus)
+parseHand :: String -> Maybe Hand
+parseHand s
+  | isValidHand (parse s) = Just (parse s)
+  | otherwise = Nothing
 
-isYakumanYaku :: Yaku -> Bool
-isYakumanYaku y = case y of
-  Yakuman {} -> True
-  _ -> False
+parseWind :: String -> Maybe Wind
+parseWind s = case head [toLower c | c <- s] of
+  'e' -> Just East
+  's' -> Just South
+  'w' -> Just West
+  'n' -> Just North
+  _ -> Nothing
 
-isNormalYaku :: Yaku -> Bool
-isNormalYaku y = case y of
-  Normal {} -> True
-  _ -> False
+parseYesNo :: String -> Maybe Bool
+parseYesNo s = case head [toLower c | c <- s] of
+  'y' -> Just True
+  'n' -> Just False
+  _ -> Nothing
 
-convertToHans :: Yaku -> Int
-convertToHans y = case y of
-  Normal yaku -> case yaku of
-    Riichi -> 1
-    Ippatsu -> 1
-    ClosedTsumo -> 1
-    AllSimple -> 1
-    HonorTiles _ -> 1
-    SelfWindTiles _ -> 1
-    NoPointsHand -> 1
-    TwinSequences -> 1
-    DeadWallDraw -> 1
-    RobbingAQuad -> 1
-    UnderTheSea -> 1
-    UnderTheRiver -> 1
-    DoubleRiichi -> 2
-    SevenPairs -> 2
-    AllTriplets -> 2
-    ThreeClosedTriplets -> 2
-    ThreeQuads -> 2
-    ThreeMixedTriplets -> 2
-    AllTerminalsAndHonors -> 2
-    LittleThreeDragons -> 2
-    ThreeMixedSequences -> 2
-    ThreeMixedSequencesOpened -> 1
-    FullStraight -> 2
-    FullStraightOpened -> 1
-    CommonEnds -> 2
-    CommonEndsOpened -> 1
-    DoubleTwinSequences -> 3
-    HalfFlush -> 3
-    HalfFlushOpened -> 2
-    CommonTerminals -> 3
-    CommonTerminalsOpened -> 2
-    FullFlush -> 6
-    FullFlushOpened -> 5
-    Dora n -> n
-  Yakuman yaku -> case yaku of
-    NagashiMangan -> 5
-    ThirteenOrphans -> 13
-    ThirteenOrphans13Waits -> 26
-    FourClosedTriplets -> 13
-    FourClosedTripletsSingleWait -> 26
-    BigThreeDragons -> 13
-    LittleFourWinds -> 13
-    BigFourWinds -> 26
-    AllHonors -> 13
-    AllTerminals -> 13
-    AllGreen -> 13
-    NineGates -> 13
-    NineGates9Waits -> 26
-    FourQuads -> 13
-    BlessingOfHeaven -> 13
-    BlessingOfEarth -> 13
-    BlessingOfMan -> 13
+parseRiichi :: String -> Maybe Riichi
+parseRiichi s = case head [toLower c | c <- s] of
+  's' -> Just SRiichi
+  'd' -> Just DbRiichi
+  _ -> Just NoRiichi
 
-scoreTable :: WinningHand -> (Int, Int) -> Int
-scoreTable w (han, fu) = undefined
+parseInt :: String -> Maybe Int
+parseInt s = case readMaybe s of
+  Nothing -> Nothing
+  Just n -> if n < 0 then Nothing else Just n
+
+parseBonusAgari :: String -> Maybe BonusAgari
+parseBonusAgari s = case head s of
+  '1' -> Just DeadWallDrawAgari
+  '2' -> Just RobbingAQuadAgari
+  '3' -> Just UnderTheSeaAgari
+  '4' -> Just UnderTheRiverAgari
+  '5' -> Just NagashiManganAgari
+  '6' -> Just BlessingOfHeavenAgari
+  '7' -> Just BlessingOfEarthAgari
+  '8' -> Just BlessingOfManAgari
+  _ -> Just NoBonus
+
+askHand :: Calculator (Prompt Hand) -> IO Hand
+askHand calculator = do
+  let query = "Enter the hand you want to calculate:"
+  ask calculator query
+
+askRoundWind :: Calculator (Prompt Wind) -> IO Wind
+askRoundWind calculator = do
+  ask calculator "What's the Round Wind? (e/s/w/n)"
+
+askSelfWind :: Calculator (Prompt Wind) -> IO Wind
+askSelfWind calculator = do
+  ask calculator "What's the Seat Wind? (e/s/w/n)"
+
+askTsumo :: Calculator (Prompt Bool) -> IO Bool
+askTsumo calculator = do
+  ask calculator "Is this a Tsumo hand (self-picked hand)? (y/n)"
+
+askDora :: Calculator (Prompt Int) -> IO Int
+askDora calculator = do
+  ask calculator "How many Doras (Bonus tiles) are in this hand?"
+
+askRiichi :: Calculator (Prompt Riichi) -> IO Riichi
+askRiichi calculator = do
+  ask calculator "Is Riichi? (s = Single Riichi, d = Double Riichi)?"
+
+askIppatsu :: Calculator (Prompt Bool) -> IO Bool
+askIppatsu calculator = do
+  ask calculator "Is Ippatsu (one-shot)? (y/n)"
+
+askBonusAgari :: Calculator (Prompt BonusAgari) -> IO BonusAgari
+askBonusAgari calculator = do
+  let query =
+        "Is there one of the following special win:\n"
+          ++ "0 = None of the below\n"
+          ++ "1 = DeadWallDraw\n"
+          ++ "2 = RobbingAQuad\n"
+          ++ "3 = UnderTheSea\n"
+          ++ "4 = UnderTheRiver\n"
+          ++ "5 = NagashiMangan\n"
+          ++ "6 = BlessingOfHeaven\n"
+          ++ "7 = BlessingOfEarth\n"
+          ++ "8 = BlessingOfMan\n"
+  ask calculator query
+
+helpAdvice :: Prompt String -> String -> Prompt String
+helpAdvice prompt advice question = do
+  answer <- prompt question
+  case answer of
+    "help" -> do
+      putStrLn advice
+      helpAdvice prompt advice question
+    other ->
+      return answer
+
+simplePrompt :: Prompt String
+simplePrompt question = do
+  putStrLn question
+  getLine
+
+untilQuit :: Prompt String -> Prompt String
+untilQuit prompt question = do
+  quitOrAnswer <- prompt question
+  case quitOrAnswer of
+    "quit" -> exitSuccess
+    answer -> return answer
+
+retryPrompt :: Prompt (Maybe a) -> Prompt a
+retryPrompt prompt question = do
+  answer <- prompt question
+  case answer of
+    Nothing -> do
+      retryPrompt prompt question
+    Just answer ->
+      return answer
+
+retryPromptHand :: Prompt (Maybe Hand) -> Prompt Hand
+retryPromptHand prompt question = do
+  answer <- prompt question
+  case answer of
+    Nothing -> do
+      let errorMessage = "Invalid Hand. Please Check your input.\n"
+      retryPrompt prompt (errorMessage ++ question)
+    Just answer ->
+      return answer
+
+changeAnswerBy :: Prompt a -> (a -> b) -> Prompt b
+changeAnswerBy prompt change question = do
+  answer <- prompt question
+  return (change answer)
+
+parseAnswerAs :: Prompt a -> (a -> Maybe b) -> Prompt b
+parseAnswerAs prompt parse = retryPrompt (prompt `changeAnswerBy` parse)
+
+parseAnswerAsHand :: Prompt a -> (a -> Maybe Hand) -> Prompt Hand
+parseAnswerAsHand prompt parse = retryPromptHand (prompt `changeAnswerBy` parse)
+
+-- ask Hand
+promptHand :: Prompt Hand
+promptHand = untilQuit simplePrompt `parseAnswerAsHand` parseHand
+
+-- ask Tsumo
+promptTsumo :: Prompt Bool
+promptTsumo = untilQuit simplePrompt `parseAnswerAs` parseYesNo
+
+-- ask Round Wind
+promptRoundWind :: Prompt Wind
+promptRoundWind = untilQuit simplePrompt `parseAnswerAs` parseWind
+
+-- ask Self Wind
+promptSelfWind :: Prompt Wind
+promptSelfWind = untilQuit simplePrompt `parseAnswerAs` parseWind
+
+-- ask Dora
+promptDora :: Prompt Int
+promptDora = untilQuit simplePrompt `parseAnswerAs` parseInt
+
+-- ask Riichi
+promptRiichi :: Prompt Riichi
+promptRiichi = untilQuit simplePrompt `parseAnswerAs` parseRiichi
+
+-- ask Ippatsu
+promptIppatsu :: Prompt Bool
+promptIppatsu = untilQuit simplePrompt `parseAnswerAs` parseYesNo
+
+-- ask BonusAgari
+promptBonusAgari :: Prompt BonusAgari
+promptBonusAgari = untilQuit simplePrompt `parseAnswerAs` parseBonusAgari
+
+newCalculator :: Calculator (Prompt Hand)
+newCalculator = Calculator {toBeCalc = [], results = [], ask = promptHand}
+
+inputHand :: Calculator (Prompt Hand) -> IO (Calculator (Prompt Wind))
+inputHand calculator = do
+  h <- askHand calculator
+  let whs = getWinHandsByDefault h
+  return calculator {toBeCalc = whs, ask = promptRoundWind}
+
+inputRoundWind :: Calculator (Prompt Wind) -> IO (Calculator (Prompt Wind))
+inputRoundWind = inputWind askRoundWind promptSelfWind
+
+inputSelfWind :: Calculator (Prompt Wind) -> IO (Calculator (Prompt Int))
+inputSelfWind = inputWind askSelfWind promptDora
+
+inputWind :: (Calculator (Prompt Wind) -> IO Wind) -> Prompt a -> Calculator (Prompt Wind) -> IO (Calculator (Prompt a))
+inputWind this next calculator = do
+  wind <- this calculator
+  let whs' = map (\w -> w {roundWind = wind}) (toBeCalc calculator)
+  return calculator {toBeCalc = whs', ask = next}
+
+inputDora :: Calculator (Prompt Int) -> IO (Calculator (Prompt Riichi))
+inputDora calculator = do
+  dora <- askDora calculator
+  let whs' = map (\w -> w {dora = dora}) (toBeCalc calculator)
+  return calculator {toBeCalc = whs', ask = promptRiichi}
+
+mainLoop :: Calculator (Prompt Hand) -> IO a
+mainLoop calculator = do
+  calc' <-
+    inputRoundWind
+      =<< inputHand calculator
+  print $ toBeCalc calc'
+  let results = calc (toBeCalc calc')
+  print $ results
+  mainLoop newCalculator

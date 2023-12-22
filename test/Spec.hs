@@ -1,10 +1,7 @@
 {-# LANGUAGE BlockArguments #-}
-{-# LANGUAGE InstanceSigs #-}
 {-# LANGUAGE TypeSynonymInstances #-}
 
 -- module Spec (main) where
-
--- import Melds
 
 import Data.List (sort)
 import Hand
@@ -16,8 +13,6 @@ import Test.QuickCheck
 import Test.QuickCheck.Exception
 import Tile
 import Wall
-
--- import Test.QuickCheck hiding (shuffle)
 
 main :: IO ()
 main = hspec do
@@ -92,24 +87,24 @@ main = hspec do
         property $ forAll anyTilesOf14 $ \(h : hs) -> do
           pluck h (h : hs) `shouldBe` Just (removeItem h (h : hs))
 
-    describe "getWinHandsByWinTile" do
+    describe "getWinHandsByDefault" do
       it "should return every possible winning hands for 22334455667788m" do
         let h = parse "22334455667788m"
-            whs = getWinHandsByWinTile h
+            whs = getWinHandsByDefault h
         length (uniq $ map hand whs) `shouldBe` 4
       it "should has the last tile as winning hand" do
         let h = parse "12345667778886p"
-            whs = getWinHandsByWinTile h
+            whs = getWinHandsByDefault h
         map winningTile whs
           `shouldMatchList` replicate (length whs) (last (fst h))
         -- with open meld
         let h = parse "12345667776pP888p"
-            whs = getWinHandsByWinTile h
+            whs = getWinHandsByDefault h
         map winningTile whs
           `shouldMatchList` replicate (length whs) (last (fst h))
       it "should find 2 different winning melds for 12345667778886p" do
         let h = parse "12345667776pP888p"
-            whs = getWinHandsByWinTile h
+            whs = getWinHandsByDefault h
         length whs `shouldBe` 2
 
   context "1.5 Parser" do
@@ -127,206 +122,241 @@ main = hspec do
       describe "isClosedHand" do
         it "should return True for 22333444555662m" do
           let h = parse "22333444555662m"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isClosedHand whs `shouldNotContain` [False]
+          length whs `shouldNotBe` 0
         it "should return False for 2334588p789m1pP333s" do
           let h = parse "2334588p789m1pP333s"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isClosedHand whs `shouldNotContain` [True]
+          length whs `shouldNotBe` 0
 
       describe "isSevenPairs" do
         it "should return True for 33m1155p118s1177z8s" do
           let h = parse "33m1155p118s1177z8s"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isSevenPairs whs `shouldMatchList` replicate (length whs) True
+          length whs `shouldNotBe` 0
         it "should return False for 33m1155p118s1277z8s" do
           let h = parse "33m1155p118s1277z8s"
-              whs = getWinHandsByWinTile h
-          map isSevenPairs whs `shouldMatchList` replicate (length whs) False
+              whs = getWinHandsByDefault h
+          length whs `shouldBe` 0
 
       describe "isNoPointsHand" do
         it "should return True for 12355m34789p456s2p" do
           let h = parse "12355m34789p456s2p"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isNoPointsHand whs `shouldMatchList` replicate (length whs) True
+          length whs `shouldNotBe` 0
         it "should return False for 12355m34999p456s2p" do
           let h = parse "12355m34999p456s2p"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isNoPointsHand whs `shouldMatchList` replicate (length whs) False
+          length whs `shouldNotBe` 0
         it "should return True for opened hand 55m34789p456s2pC1m" do
           let h = parse "55m34789p456s2pC1m"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isNoPointsHand whs `shouldMatchList` replicate (length whs) True
+          length whs `shouldNotBe` 0
 
       describe "isTwinSequences" do
         it "should return True for 24m556677p999s66z3m" do
           let h = parse "24m556677p999s66z3m"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isTwinSequences whs `shouldMatchList` replicate (length whs) True
+          length whs `shouldNotBe` 0
         it "should return False for 24m567p999s66z3mC5p" do
           let h = parse "24m567p999s66z3mC5p"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isTwinSequences whs `shouldMatchList` replicate (length whs) False
+          length whs `shouldNotBe` 0
         it "should return False for Double Twin Sequence Hands" do
           let h = parse "223344p66778m11z8m"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isTwinSequences whs `shouldMatchList` replicate (length whs) False
+          length whs `shouldNotBe` 0
 
       describe "isDoubleTwinSequences" do
         it "should return True for 223344p66778m11z8m" do
           let h = parse "223344p66778m11z8m"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isDoubleTwinSequences whs `shouldContain` [True]
+          length whs `shouldNotBe` 0
         -- The other possibility is Seven Pairs, would return False
         it "should return False for 234p66778m11z8mC2p" do
           let h = parse "234p66778m11z8mC2p"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isDoubleTwinSequences whs `shouldContain` [False]
+          length whs `shouldNotBe` 0
 
       describe "isThreeMixedSequences" do
         it "should return True for 234m111234p234s22z" do
           let h = parse "234m111234p234s22z"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isThreeMixedSequences whs `shouldMatchList` replicate (length whs) True
+          length whs `shouldNotBe` 0
         it "should return True for 234m111234p22zC2s" do
           let h = parse "234m111234p22zC2s"
-              whs = getWinHandsByWinTile h
-          map isThreeMixedSequences whs `shouldMatchList` replicate (length whs) True
+              whs = getWinHandsByDefault h
+          map isThreeMixedSequencesOpened whs `shouldMatchList` replicate (length whs) True
+          length whs `shouldNotBe` 0
         it "should return False for 234m111534p22zC2s" do
           let h = parse "234m111534p22zC2s"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isThreeMixedSequences whs `shouldMatchList` replicate (length whs) False
+          length whs `shouldNotBe` 0
 
       describe "isFullStraight" do
         it "should return True for 999m23456789s55z1s" do
           let h = parse "999m23456789s55z1s"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isFullStraight whs `shouldMatchList` replicate (length whs) True
+          length whs `shouldNotBe` 0
         it "should return True for 999m23789s55z1sC456s" do
           let h = parse "999m23456789s55z1s"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isFullStraight whs `shouldMatchList` replicate (length whs) True
+          length whs `shouldNotBe` 0
 
       describe "isAllTripletsYaku" do
         it "should return True for 888m333p11177s44z7s" do
           let h = parse "888m333p11177s44z7s"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isAllTripletsYaku whs
             `shouldMatchList` replicate (length whs) True
+          length whs `shouldNotBe` 0
         it "should return True for 888m11177s44z7sK3p" do
           let h = parse "888m11177s44z7sK3p"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isAllTripletsYaku whs
             `shouldMatchList` replicate (length whs) True
+          length whs `shouldNotBe` 0
         it "should return False for 888m123p11177s44z7s" do
           let h = parse "888m123p11177s44z7s"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isAllTripletsYaku whs
             `shouldMatchList` replicate (length whs) False
+          length whs `shouldNotBe` 0
 
       describe "isThreeClosedTriplets" do
         it "should return True for 1444m123999p222s1m" do
           let h = parse "1444m123999p222s1m"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isThreeClosedTriplets whs
             `shouldMatchList` replicate (length whs) True
+          length whs `shouldNotBe` 0
 
       describe "isThreeMixedTriplets" do
         it "should return True for 33m333p678p333s33z3m" do
           let h = parse "33m333p678p333s33z3m"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isThreeMixedTriplets whs
             `shouldMatchList` replicate (length whs) True
+          length whs `shouldNotBe` 0
 
       describe "isThreeQuads" do
         it "should return True for 123p22sK8mK1sk4z" do
           let h = parse "123p22sK8mK1sk4z"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isThreeQuads whs
             `shouldMatchList` replicate (length whs) True
+          length whs `shouldNotBe` 0
 
       describe "isAllSimple" do
         it "should return True for 22345678m345666s" do
           let h = parse "22345678m345666s"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isAllSimple whs `shouldMatchList` replicate (length whs) True
+          length whs `shouldNotBe` 0
         it "should return False for 11z345678m34566s1z" do
           let h = parse "11z345678m34566s1z"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isAllSimple whs `shouldMatchList` replicate (length whs) False
+          length whs `shouldNotBe` 0
 
       describe "isHonorTiles" do
         it "should return True for 55m123567p888s777z" do
           let h = parse "55m123567p888s777z"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isHonorTiles whs `shouldMatchList` replicate (length whs) True
+          length whs `shouldNotBe` 0
 
       describe "isCommonEnds" do
         it "should return True for 789m11178p999s55z9p" do
           let h = parse "789m11178p999s55z9p"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isCommonEnds whs `shouldMatchList` replicate (length whs) True
+          length whs `shouldNotBe` 0
 
       describe "isCommonTerminals" do
         it "should return True for 123999m99p127893s" do
           let h = parse "123999m99p127893s"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isCommonTerminals whs `shouldMatchList` replicate (length whs) True
+          length whs `shouldNotBe` 0
 
       describe "isAllTerminalsAndHonors" do
         it "should return True for 111m999p11999s66z1s" do
           let h = parse "111m999p11999s66z1s"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isAllTerminalsAndHonors whs
             `shouldMatchList` replicate (length whs) True
+          length whs `shouldNotBe` 0
         it "should return True for 11m11p99s12255771z" do
           let h = parse "11m11p99s12255771z"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isAllTerminalsAndHonors whs
             `shouldMatchList` replicate (length whs) True
+          length whs `shouldNotBe` 0
         it "should return False for 111m999p22999s666z" do
           let h = parse "111m999p22999s666z"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isAllTerminalsAndHonors whs
             `shouldMatchList` replicate (length whs) False
+          length whs `shouldNotBe` 0
 
       describe "isLittleThreeDragons" do
         it "should return True for 234p678s55666775z" do
           let h = parse "234p678s55666775z"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isLittleThreeDragons whs `shouldMatchList` replicate (length whs) True
+          length whs `shouldNotBe` 0
 
       describe "isHalfFlush" do
         it "should return True for 11134789p22555z5p" do
           let h = parse "11134789p22555z5p"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isHalfFlush whs `shouldMatchList` replicate (length whs) True
+          length whs `shouldNotBe` 0
         it "should return False for 11134789p225552p" do
           let h = parse "11134789p225552p"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isHalfFlush whs `shouldMatchList` replicate (length whs) False
+          length whs `shouldNotBe` 0
         it "should return False for 11134789s225552s" do
           let h = parse "11134789p225552p"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isHalfFlush whs `shouldMatchList` replicate (length whs) False
+          length whs `shouldNotBe` 0
 
       describe "isFullFlush" do
         it "should return True for 13444556667892s" do
           let h = parse "13444556667892s"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isFullFlush whs `shouldMatchList` replicate (length whs) True
+          length whs `shouldNotBe` 0
 
       describe "isThirteenOrphans" do
         it "should return True for 1m19p19s12234567z9m" do
           let h = parse "1m19p19s12234567z9m"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           print whs
           map isThirteenOrphans whs
             `shouldMatchList` replicate (length whs) True
           length whs `shouldNotBe` 0
         it "should return False for 19m19p19s12345672z" do
           let h = parse "19m19p19s12345672z"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isThirteenOrphans whs
             `shouldMatchList` replicate (length whs) False
           length whs `shouldNotBe` 0
@@ -334,13 +364,13 @@ main = hspec do
       describe "isThirteenOrphans13Waits" do
         it "should return True for 19m19p19s12345672z" do
           let h = parse "19m19p19s12345672z"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isThirteenOrphans13Waits whs
             `shouldMatchList` replicate (length whs) True
           length whs `shouldNotBe` 0
         it "should return False for 1m19p19s12234567z9m" do
           let h = parse "1m19p19s12234567z9m"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isThirteenOrphans13Waits whs
             `shouldMatchList` replicate (length whs) False
           length whs `shouldNotBe` 0
@@ -348,30 +378,30 @@ main = hspec do
       describe "isFourClosedTriplets" do
         it "should return True for 44488m999p222s11z8m" do
           let h = parse "44488m999p222s11z8m"
-              whs' = getWinHandsByWinTile h
+              whs' = getWinHandsByDefault h
               whs = map (\x -> x {isTsumo = True}) whs'
           map isFourClosedTriplets whs
             `shouldMatchList` replicate (length whs) True
         it "should return False if not Tsumo for 555m222999p44466z" do
           let h = parse "555m222999p44466z"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isFourClosedTriplets whs
             `shouldMatchList` replicate (length whs) False
 
       describe "isFourClosedTripletsSingleWait" do
         it "should return True for 555m222999p44466z" do
           let h = parse "555m222999p44466z"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isFourClosedTripletsSingleWait whs
             `shouldMatchList` replicate (length whs) True
         it "should return False for 44488m999p222s11z8m" do
           let h = parse "44488m999p222s11z8m"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isFourClosedTripletsSingleWait whs
             `shouldMatchList` replicate (length whs) False
         it "should return False even if Tsumo for 44488m999p222s11z8m" do
           let h = parse "44488m999p222s11z8m"
-              whs' = getWinHandsByWinTile h
+              whs' = getWinHandsByDefault h
               whs = map (\x -> x {isTsumo = True}) whs'
           map isFourClosedTripletsSingleWait whs
             `shouldMatchList` replicate (length whs) False
@@ -379,63 +409,63 @@ main = hspec do
       describe "isBigThreeDragons" do
         it "should return True for 567m44s555666777z" do
           let h = parse "567m44s555666777z"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isBigThreeDragons whs
             `shouldMatchList` replicate (length whs) True
 
       describe "isLittleFourWinds" do
         it "should return True for 678s11122233443z" do
           let h = parse "678s11122233443z"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isLittleFourWinds whs
             `shouldMatchList` replicate (length whs) True
 
       describe "isBigFourWinds" do
         it "should return True for 33p111222333444z" do
           let h = parse "33p111222333444z"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isBigFourWinds whs
             `shouldMatchList` replicate (length whs) True
 
       describe "isAllHonors" do
         it "should return True for 11222335556661z" do
           let h = parse "11222335556661z"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isAllHonors whs
             `shouldMatchList` replicate (length whs) True
 
       describe "isAllTerminals" do
         it "should return True for 11m111999p11999s1m" do
           let h = parse "11m111999p11999s1m"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isAllTerminals whs
             `shouldMatchList` replicate (length whs) True
 
       describe "isAllGreen" do
         it "should return True for 22334466888s66z6s" do
           let h = parse "22334466888s66z6s"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isAllGreen whs
             `shouldMatchList` replicate (length whs) True
 
       describe "isNineGates" do
         it "should return True for 11123445679998m" do
           let h = parse "11123445679998m"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isNineGates whs
             `shouldMatchList` replicate (length whs) True
 
       describe "isNineGates9Waits" do
         it "should return True for 11123456789991p" do
           let h = parse "11123456789991p"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isNineGates9Waits whs
             `shouldMatchList` replicate (length whs) True
 
       describe "isFourQuads" do
         it "should return True for 11pk2sk8mK1sK4z" do
           let h = parse "11pk2sk8mK1sK4z"
-              whs = getWinHandsByWinTile h
+              whs = getWinHandsByDefault h
           map isFourQuads whs
             `shouldMatchList` replicate (length whs) True
 

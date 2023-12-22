@@ -133,8 +133,11 @@ noTilesMoreThanFour (ts, ms) = do
   let allTiles = ts ++ concatMap meldToTiles ms
    in all (\x -> length x <= 4) (group (sort allTiles))
 
-getWinHandsByWinTile :: Hand -> [WinningHand]
-getWinHandsByWinTile hand
+getWinHandsByDefault :: Hand -> [WinningHand]
+getWinHandsByDefault = getWinHands defaultWH
+
+getWinHands :: WinningHand -> Hand -> [WinningHand]
+getWinHands whBase hand
   | not $ isValidHand hand = []
   | otherwise =
       let mss = map sort $ validMatches (matchIntoMelds hand)
@@ -144,7 +147,7 @@ getWinHandsByWinTile hand
        in uniq sortedWH
   where
     initWinningHand :: [Meld] -> Meld -> Tile -> WinningHand
-    initWinningHand ms wm t = defaultWH {hand = ms, winningMeld = wm, winningTile = t}
+    initWinningHand ms wm t = whBase {hand = ms, winningMeld = wm, winningTile = t}
 
 findWinningMelds :: [[Meld]] -> Tile -> [([Meld], Meld)]
 findWinningMelds (ms : mss) t =

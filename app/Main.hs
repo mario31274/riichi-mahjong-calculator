@@ -12,9 +12,17 @@ import Wall
 
 main :: IO ()
 main = do
-  let hand = parse "45678p123s88m3p#C4p"
-  print $ "You entered:"
-  print $ hand
-  print $ "The hand can be split into the following melds:"
-  print $ map sort $ validMatches $ matchIntoMelds hand
-  print $ getWinHandsByWinTile hand
+  -- -- let h = parse "33p111222z333s444z"
+  -- let h = parse "2233445667788p"
+  -- putStr $ show "You entered:"
+  -- print $ h
+  -- let whs = getWinHandsByWinTile h
+  --     w = head whs
+  -- if length whs < 1
+  --   then do
+  --     print "No valid winning hand available. Check your input"
+  --   else do
+  --     print $ "The hand can be split into the following melds:"
+  --     print (map hand whs)
+  --     putStrLn $ unlines (map show (sortBy (flip compare) (calc whs)))
+  mainLoop newCalculator

@@ -28,6 +28,7 @@ library
                       Parser,
                       Player,
                       Rule,
+                      Score,
                       Tile,
                       Wall
 
