@@ -7,7 +7,7 @@ import Tile
 type Opened = Bool
 
 data Meld = Pair Tile Tile | Run Tile Tile Tile Opened | Triplet Tile Tile Tile Opened | Quad Tile Tile Tile Tile Opened | Single Tile
-  deriving (Ord, Eq)
+  deriving (Eq)
 
 instance Show Meld where
   show :: Meld -> String
@@ -19,7 +19,30 @@ instance Show Meld where
     Triplet t1 t2 t3 True -> "Pon" ++ show (t1, t2, t3)
     Triplet t1 t2 t3 False -> show (t1, t2, t3)
     Quad t1 t2 t3 t4 True -> "Kan" ++ show (t1, t2, t3, t4)
-    Quad t1 t2 t3 t4 False -> "ClosedKan(\x1f02b," ++ show t2 ++ "," ++ show t3 ++ ",\x1f02b)"
+    Quad t1 t2 t3 t4 False -> "ClsKan(\x1f02b," ++ show t2 ++ "," ++ show t3 ++ ",\x1f02b)"
+
+instance Ord Meld where
+  compare :: Meld -> Meld -> Ordering
+  compare (Pair t1 _) (Pair t2 _) = compare t1 t2
+  compare (Run t1 _ _ opened1) (Run t2 _ _ opened2) =
+    case compare opened1 opened2 of
+      EQ -> compare t1 t2
+      other -> other
+  compare (Triplet t1 _ _ opened1) (Triplet t2 _ _ opened2) =
+    case compare opened1 opened2 of
+      EQ -> compare t1 t2
+      other -> other
+  compare (Quad t1 _ _ _ opened1) (Quad t2 _ _ _ opened2) =
+    case compare opened1 opened2 of
+      EQ -> compare t1 t2
+      other -> other
+  compare m1 m2 = compare (not (isClosedMeld m1), tag m1) (not (isClosedMeld m2), tag m2)
+    where
+      tag Pair {} = 4
+      tag Run {} = 2
+      tag Triplet {} = 3
+      tag Quad {} = 5
+      tag Single {} = 1
 
 pairMeld :: Tile -> Tile -> Maybe Meld
 pairMeld t1 t2
@@ -132,7 +155,6 @@ isAllSame _ = False
 
 isClosedMeld :: Meld -> Bool
 isClosedMeld m = case m of
-  Pair _ _ -> True
   Run _ _ _ o -> not o
   Triplet _ _ _ o -> not o
   Quad _ _ _ _ o -> not o
@@ -226,5 +248,11 @@ filterQuadMelds = filter isQuad
 filterTripletOrQuadMelds :: [Meld] -> [Meld]
 filterTripletOrQuadMelds = filter isTripletOrQuad
 
-filterSingle :: [Meld] -> [Meld]
-filterSingle = filter isSingle
+filterSingleMelds :: [Meld] -> [Meld]
+filterSingleMelds = filter isSingle
+
+filterPairMelds :: [Meld] -> [Meld]
+filterPairMelds = filter isPair
+
+filterNotPairMelds :: [Meld] -> [Meld]
+filterNotPairMelds = filter (not . isPair)

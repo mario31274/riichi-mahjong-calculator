@@ -1,5 +1,6 @@
 module Calculator where
 
+-- import Control.Lens
 import Data.Char
 import Data.List (sort)
 import Hand
@@ -14,7 +15,8 @@ import Tile
 import Wall
 
 data Calculator a = Calculator
-  { toBeCalc :: [WinningHand],
+  { handInput :: Hand,
+    toBeCalc :: [WinningHand],
     results :: [Result],
     ask :: a
   }
@@ -99,7 +101,7 @@ parseRiichi :: String -> Maybe Riichi
 parseRiichi (c : _)
   | isAlpha c =
       case toLower c of
-        's' -> Just SRiichi
+        'y' -> Just SRiichi
         'd' -> Just DbRiichi
         _ -> Just NoRiichi
   | otherwise = Just NoRiichi
@@ -141,7 +143,7 @@ askSelfWind calculator = do
 
 askTsumo :: Calculator (Prompt Bool) -> IO Bool
 askTsumo calculator = do
-  ask calculator "Is this a Tsumo hand (self-picked hand)? (y/n)"
+  ask calculator "Is this a Tsumo hand (self-draw tile)? (y/n)"
 
 askDora :: Calculator (Prompt Int) -> IO Int
 askDora calculator = do
@@ -149,7 +151,7 @@ askDora calculator = do
 
 askRiichi :: Calculator (Prompt Riichi) -> IO Riichi
 askRiichi calculator = do
-  ask calculator "Is Riichi? (s = Single Riichi, d = Double Riichi, Default=No)?"
+  ask calculator "Riichi hand? (y = Yes, Single Riichi, d = Double Riichi, Default=No)"
 
 askIppatsu :: Calculator (Prompt Bool) -> IO Bool
 askIppatsu calculator = do
@@ -261,19 +263,27 @@ promptBonusAgari :: Prompt BonusAgari
 promptBonusAgari = untilQuit simplePrompt `parseAnswerAs` parseBonusAgari
 
 newCalculator :: Calculator (Prompt Hand)
-newCalculator = Calculator {toBeCalc = [], results = [], ask = promptHand}
+newCalculator = Calculator {handInput = ([], []), toBeCalc = [], results = [], ask = promptHand}
 
 inputHand :: Calculator (Prompt Hand) -> IO (Calculator (Prompt Wind))
 inputHand calculator = do
   h <- askHand calculator
   let whs = getWinHandsByDefault h
-  return calculator {toBeCalc = whs, ask = promptRoundWind}
+  return calculator {handInput = h, toBeCalc = whs, ask = promptRoundWind}
 
 inputRoundWind :: Calculator (Prompt Wind) -> IO (Calculator (Prompt Wind))
-inputRoundWind = inputWind askRoundWind promptSelfWind
+-- inputRoundWind = inputWind askRoundWind promptSelfWind
+inputRoundWind calculator = do
+  wind <- askRoundWind calculator
+  let whs' = map (\w -> w {roundWind = wind}) (toBeCalc calculator)
+  return calculator {toBeCalc = whs', ask = promptSelfWind}
 
 inputSelfWind :: Calculator (Prompt Wind) -> IO (Calculator (Prompt Bool))
-inputSelfWind = inputWind askSelfWind promptTsumo
+-- inputSelfWind = inputWind askSelfWind promptTsumo
+inputSelfWind calculator = do
+  wind <- askSelfWind calculator
+  let whs' = map (\w -> w {selfWind = wind}) (toBeCalc calculator)
+  return calculator {toBeCalc = whs', ask = promptTsumo}
 
 inputWind :: (Calculator (Prompt Wind) -> IO Wind) -> Prompt a -> Calculator (Prompt Wind) -> IO (Calculator (Prompt a))
 inputWind this next calculator = do
@@ -335,5 +345,7 @@ mainLoop calculator = do
         inputBonusAgari (changePrompt promptBonusAgari calc1)
       _ -> do
         inputIppatsu calc1 >>= inputBonusAgari
+  print "You Entered:"
+  print $ handInput calc2
   putStr $ unlines (map show (sort (calc (toBeCalc calc2))))
   mainLoop newCalculator

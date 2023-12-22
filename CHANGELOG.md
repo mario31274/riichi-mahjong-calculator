@@ -19,3 +19,13 @@
 ## 0.2.0.0 -- 2023-12-21 11:03 pm
 
 * Calculator with prompt completed.
+
+## 0.2.0.1 -- 2023-12-22
+
+* Bug Fixed: Doras not showing up in Yaku list
+* Bug Fixed: Self wind input not being registered
+* Bug Fixed: Normal yakus still being shown when there's a Yakuman yaku
+* Bug Fixed: isValidWinningHand: 7 meld long hand should consists of
+  pairs only
+* Bug Fixed: Single Wait Fu's being adding for 2 times
+* Yakuman hands shouldn't show fu's anymore because they are irrelevant

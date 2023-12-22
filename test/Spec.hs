@@ -511,7 +511,19 @@ main = hspec do
               whs = getWinHandsByDefault h
           putStr $ unlines (map show (sort (calc whs)))
 
+          let h = parse "44p321s999m123pP7z"
+              whs = getWinHandsByDefault h
+          putStr $ unlines (map show (sort (calc whs)))
+
           let h = parse "22334455667788p"
+              whs = getWinHandsByDefault h
+          putStr $ unlines (map show (sort (calc whs)))
+
+          let h = parse "555666z22sC789pk7z"
+              whs = getWinHandsByDefault h
+          putStr $ unlines (map show (sort (calc whs)))
+
+          let h = parse "66zk1zk2zk3zk4z"
               whs = getWinHandsByDefault h
           putStr $ unlines (map show (sort (calc whs)))
 

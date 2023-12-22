@@ -91,7 +91,7 @@ data Fu
   | DragonPair -- 2 fu
   | WindPair -- 2 fu
   | SelfWindPair -- 2 fu
-  deriving (Show, Ord, Eq)
+  deriving (Ord, Eq)
 
 data Result = Result
   { yakus :: [Yaku],
@@ -116,85 +116,114 @@ instance Ord Result where
 instance Show Result where
   show r
     | null (yakus r) =
+        firstLines
+          ++ "--------   This hand has no Yakus   --------\n"
+          ++ "-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-\n"
+    | any isYakumanYaku (yakus r) =
         "-=-=-=-=-=-=-=-=-=-Result-=-=-=-=-=-=-=-=-=-\n"
           ++ concatMap (\m -> show m ++ " ") (handCopy r)
-          ++ "\n"
+          ++ "\n "
+          ++ yakumanLines
+          ++ "\t\t\t"
+          ++ scoreString
+          ++ "------------        Yaku        ------------\n"
+          ++ unlines (map (\y -> " " ++ show y ++ "  " ++ nTimesYakuman y) (filter isYakumanYaku (yakus r)))
+          ++ "-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-\n"
+    | otherwise =
+        firstLines
+          ++ "------------        Yaku        ------------\n"
+          ++ unlines (map (\y -> " " ++ show y ++ "    " ++ show (convertToHans y)) (yakus r))
+          ++ "-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-\n"
+    where
+      firstLines =
+        "-=-=-=-=-=-=-=-=-=-Result-=-=-=-=-=-=-=-=-=-\n"
+          ++ concatMap (\m -> show m ++ " ") (handCopy r)
+          ++ "\n "
           ++ show (han r)
           ++ " Han / "
           ++ show (fu r)
           ++ " Fu\t\t\t"
           ++ scoreString
-          ++ "--------      Fu      --------\n"
-          ++ unlines (map (\f -> show f ++ "  " ++ show (convertToFus f)) (fus r))
-          ++ "--- This hand has no Yakus ---\n"
-          ++ "-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-\n"
-    | otherwise =
-        "-=-=-=-=-=-=-=-=-=-Result-=-=-=-=-=-=-=-=-=-\n"
-          ++ show (handCopy r)
-          ++ "\n"
-          ++ show (han r)
-          ++ " Han / "
-          ++ show (fu r)
-          ++ " Fu\t\t"
-          ++ scoreString
-          ++ "------      Fu      ------\n"
-          ++ unlines (map (\f -> show f ++ "  " ++ show (convertToFus f)) (fus r))
-          ++ "------     Yaku     ------\n"
-          ++ unlines (map (\y -> show y ++ "  " ++ show (convertToHans y)) (yakus r))
-          ++ "-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-\n"
-    where
+          ++ "------------         Fu         ------------\n"
+          ++ unlines (map (\f -> " " ++ show f ++ "  " ++ show (convertToFus f)) (fus r))
       scoreString
         | tsumoTotal r == 0 = show (total r) ++ " pts\n"
         | total r == tsumoTotal r = show (total r) ++ " pts from all\n"
         | otherwise = show (total r) ++ " / " ++ show (tsumoTotal r) ++ " pts\n"
+      yakumanLines
+        | (han r) `div` 13 == 1 = "Yakuman"
+        | otherwise = show ((han r) `div` 13) ++ "x Yakuman"
+      nTimesYakuman y
+        | (convertToHans y) `div` 13 == 1 = "Yakuman"
+        | otherwise = show ((convertToHans y) `div` 13) ++ "x Yakuman"
 
 instance Show Yaku where
   show y = case y of
     Normal Riichi -> "Riichi"
     Normal Ippatsu -> "Ippatsu"
-    Normal ClosedTsumo -> "ClosedTsumo"
-    Normal AllSimple -> "AllSimple"
-    Normal (HonorTiles yakuhai) -> "HonorTiles " ++ show yakuhai
-    Normal (SelfWindTiles wind) -> "SelfWindTiles " ++ show wind
-    Normal NoPointsHand -> "NoPointsHand"
-    Normal TwinSequences -> "TwinSequences"
-    Normal DeadWallDraw -> "DeadWallDraw"
-    Normal RobbingAQuad -> "RobbingAQuad"
-    Normal UnderTheSea -> "UnderTheSea"
-    Normal UnderTheRiver -> "UnderTheRiver"
-    Normal DoubleRiichi -> "DoubleRiichi"
-    Normal SevenPairs -> "SevenPairs"
-    Normal AllTriplets -> "AllTriplets"
-    Normal ThreeClosedTriplets -> "ThreeClosedTriplets"
-    Normal ThreeQuads -> "ThreeQuads"
-    Normal ThreeMixedTriplets -> "ThreeMixedTriplets"
-    Normal AllTerminalsAndHonors -> "AllTerminalsAndHonors"
-    Normal LittleThreeDragons -> "LittleThreeDragons"
-    Normal (ThreeMixedSequences _) -> "ThreeMixedSequences"
-    Normal (FullStraight _) -> "FullStraight"
-    Normal (CommonEnds _) -> "CommonEnds"
-    Normal DoubleTwinSequences -> "DoubleTwinSequences"
-    Normal (HalfFlush _) -> "HalfFlush"
-    Normal (CommonTerminals _) -> "CommonTerminals"
-    Normal (FullFlush _) -> "FullFlush"
+    Normal ClosedTsumo -> "Closed Tsumo"
+    Normal AllSimple -> "All Simple"
+    Normal (HonorTiles yakuhai) -> "Honor Tiles " ++ show yakuhai
+    Normal (SelfWindTiles wind) -> "Self Wind Tiles " ++ show wind
+    Normal NoPointsHand -> "No Points Hand"
+    Normal TwinSequences -> "Twin Sequences"
+    Normal DeadWallDraw -> "Dead Wall Draw"
+    Normal RobbingAQuad -> "Robbing A Quad"
+    Normal UnderTheSea -> "Under The Sea"
+    Normal UnderTheRiver -> "Under The River"
+    Normal DoubleRiichi -> "Double Riichi"
+    Normal SevenPairs -> "Seven Pairs"
+    Normal AllTriplets -> "All Triplets"
+    Normal ThreeClosedTriplets -> "Three Closed Triplets"
+    Normal ThreeQuads -> "Three Quads"
+    Normal ThreeMixedTriplets -> "Three Mixed Triplets"
+    Normal AllTerminalsAndHonors -> "All Terminals And Honors"
+    Normal LittleThreeDragons -> "Little Three Dragons"
+    Normal (ThreeMixedSequences _) -> "Three Mixed Sequences"
+    Normal (FullStraight _) -> "Full Straight"
+    Normal (CommonEnds _) -> "Common Ends"
+    Normal DoubleTwinSequences -> "Double Twin Sequences"
+    Normal (HalfFlush _) -> "Half Flush"
+    Normal (CommonTerminals _) -> "Common Terminals"
+    Normal (FullFlush _) -> "Full Flush"
     Normal (Dora n) -> "Dora " ++ show n
-    Yakuman NagashiMangan -> "NagashiMangan"
-    Yakuman ThirteenOrphans -> "ThirteenOrphans"
-    Yakuman ThirteenOrphans13Waits -> "ThirteenOrphans13Waits"
-    Yakuman FourClosedTriplets -> "FourClosedTriplets"
-    Yakuman FourClosedTripletsSingleWait -> "FourClosedTripletsSingleWait"
-    Yakuman BigThreeDragons -> "BigThreeDragons"
-    Yakuman LittleFourWinds -> "LittleFourWinds"
-    Yakuman BigFourWinds -> "BigFourWinds"
-    Yakuman AllHonors -> "AllHonors"
-    Yakuman AllTerminals -> "AllTerminals"
-    Yakuman AllGreen -> "AllGreen"
-    Yakuman NineGates -> "NineGates"
-    Yakuman NineGates9Waits -> "NineGates9Waits"
-    Yakuman FourQuads -> "FourQuads"
-    Yakuman BlessingOfHeaven -> "BlessingOfHeaven"
-    Yakuman BlessingOfEarth -> "BlessingOfEarth"
-    Yakuman BlessingOfMan -> "BlessingOfMan"
+    Yakuman NagashiMangan -> "Nagashi Mangan"
+    Yakuman ThirteenOrphans -> "Thirteen Orphans"
+    Yakuman ThirteenOrphans13Waits -> "13-Wait Thirteen Orphans"
+    Yakuman FourClosedTriplets -> "Four Closed Triplets"
+    Yakuman FourClosedTripletsSingleWait -> "Four Closed Triplets Single Wait"
+    Yakuman BigThreeDragons -> "Big Three Dragons"
+    Yakuman LittleFourWinds -> "Little Four Winds"
+    Yakuman BigFourWinds -> "Big Four Winds"
+    Yakuman AllHonors -> "All Honors"
+    Yakuman AllTerminals -> "All Terminals"
+    Yakuman AllGreen -> "All Green"
+    Yakuman NineGates -> "Nine Gates"
+    Yakuman NineGates9Waits -> "9-Wait Nine Gates"
+    Yakuman FourQuads -> "Four Quads"
+    Yakuman BlessingOfHeaven -> "Blessing Of Heaven"
+    Yakuman BlessingOfEarth -> "Blessing Of Earth"
+    Yakuman BlessingOfMan -> "Blessing Of Man"
+
+instance Show Fu where
+  show f = case f of
+    Base -> "Base"
+    ClosedRon -> "Closed Ron"
+    SevenPairsBase -> "Seven Pairs Base"
+    OpenNoPointsBase -> "No Points Hand Base"
+    Tsumo -> "Tsumo"
+    SingleWait -> "Single Tile Wait"
+    OpenSimpleTriplet n -> "Open Simple Triplet x" ++ show n
+    ClosedSimpleTriplet n -> "Closed Simple Triplet x" ++ show n
+    OpenSimpleQuad n -> "Open Simple Quad x" ++ show n
+    ClosedSimpleQuad n -> "Closed Simple Quad x" ++ show n
+    OpenTerminalTriplet n -> "Open Terminal Triplet x" ++ show n
+    ClosedTerminalTriplet n -> "Closed Terminal Triplet x" ++ show n
+    OpenTerminalQuad n -> "Open Terminal Quad x" ++ show n
+    ClosedTerminalQuad n -> "Closed Terminal Quad x" ++ show n
+    DragonPair -> "Dragon Pair"
+    WindPair -> "Wind Pair"
+    SelfWindPair -> "Self Wind Pair"
 
 calc :: [WinningHand] -> [Result]
 calc [] = []
@@ -207,7 +236,7 @@ calc (w : whs) =
 calcOneWinningHand :: WinningHand -> Result
 calcOneWinningHand w =
   Result
-    { yakus = yakus,
+    { yakus = yakus',
       fus = fus,
       han = han,
       fu = point,
@@ -332,7 +361,6 @@ getFus w
         ++ appendFus isSevenPairs SevenPairsBase w
         ++ appendFus isOpenNoPoints OpenNoPointsBase w
         ++ appendFus isTsumo Tsumo w
-        ++ appendFus isOneSideWait SingleWait w
         ++ appendMultiFus hasOpenSimpleTriplet (OpenSimpleTriplet 0) w
         ++ appendMultiFus hasClosedSimpleTriplet (ClosedSimpleTriplet 0) w
         ++ appendMultiFus hasOpenSimpleQuad (OpenSimpleQuad 0) w

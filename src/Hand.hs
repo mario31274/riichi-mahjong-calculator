@@ -14,12 +14,6 @@ pluck x (y : ys)
   | x == y = Just ys
   | otherwise = fmap (y :) (pluck x ys)
 
-pluckBy :: (Eq a) => (a -> a -> Bool) -> a -> [a] -> Maybe [a]
-pluckBy f x [] = Nothing
-pluckBy f x (y : ys)
-  | f x y = Just ys
-  | otherwise = fmap (y :) (pluck x ys)
-
 match :: [Tile] -> Meld -> Maybe [Tile]
 match [] _ = Nothing
 match hand (Run t1 t2 t3 _) = do
@@ -104,9 +98,11 @@ matchWith meld [] = Nothing
 validMatches :: [([Meld], [Tile])] -> [[Meld]]
 validMatches [] = []
 validMatches (match : matches) = case match of
-  (ms, []) -> case isValidWinningMelds ms of
-    True -> ms : validMatches matches
-    False -> validMatches matches
+  (ms, []) ->
+    ( if isValidWinningMelds ms
+        then ms : validMatches matches
+        else validMatches matches
+    )
   _ -> validMatches matches
 
 findTileInMelds :: [Meld] -> Tile -> Maybe Meld
@@ -126,7 +122,11 @@ isValidHand (ts, ms)
   | otherwise = False
 
 isValidWinningMelds :: [Meld] -> Bool
-isValidWinningMelds ms = length ms == 5 || length ms == 7 || length ms == 13
+isValidWinningMelds ms
+  | length ms == 5 = not (any isSingle ms)
+  | length ms == 7 = not (any isSingle ms)
+  | length ms == 13 = True
+  | otherwise = False
 
 noTilesMoreThanFour :: Hand -> Bool
 noTilesMoreThanFour (ts, ms) = do
@@ -151,8 +151,9 @@ getWinHands whBase hand
 
 findWinningMelds :: [[Meld]] -> Tile -> [([Meld], Meld)]
 findWinningMelds (ms : mss) t =
-  let threesFirst = tail ms ++ [head ms]
-   in findWinningMelds' (threesFirst : ms : mss) t
+  let pairFirst = filterPairMelds ms ++ filterNotPairMelds ms
+      threesFirst = filterNotPairMelds ms ++ filterPairMelds ms
+   in findWinningMelds' (threesFirst : pairFirst : mss) t
 findWinningMelds [] _ = []
 
 -- find the winning melds among winning hands with a win tile, ideally in closed melds

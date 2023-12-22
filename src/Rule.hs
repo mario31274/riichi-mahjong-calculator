@@ -283,14 +283,14 @@ isFullFlushOpened w = not (isClosedHand w) && isFullFlush w
 isThirteenOrphans :: WinningHand -> Bool
 isThirteenOrphans w =
   all isTerminalOrHonorMeld (hand w)
-    && length (filterSingle (hand w)) == 12
+    && length (filterSingleMelds (hand w)) == 12
     && not (isPair (winningMeld w))
 
 -- Thirteen Orphans 13-wait
 isThirteenOrphans13Waits :: WinningHand -> Bool
 isThirteenOrphans13Waits w =
   all isTerminalOrHonorMeld (hand w)
-    && length (filterSingle (hand w)) == 12
+    && length (filterSingleMelds (hand w)) == 12
     && isPair (winningMeld w)
 
 -- Four Concealed Triplets
