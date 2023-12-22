@@ -497,7 +497,7 @@ hasQuad openCond terminalCond w =
             ( \m ->
                 isQuad m
                   && openCond m
-                  && isNonTerminalMeld m
+                  && terminalCond m
             )
             meldsInHand
         )
