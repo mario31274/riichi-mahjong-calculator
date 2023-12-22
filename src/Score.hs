@@ -12,7 +12,7 @@ data Yaku = Normal Normal | Yakuman Yakuman
   deriving (Ord, Eq)
 
 data Yakuhai = YakuhaiWind Wind | YakuhaiDragon Dragon
-  deriving (Show, Ord, Eq)
+  deriving (Ord, Eq)
 
 data Normal
   = -- 1 Han yakus
@@ -163,7 +163,7 @@ instance Show Yaku where
     Normal Ippatsu -> "Ippatsu"
     Normal ClosedTsumo -> "Closed Tsumo"
     Normal AllSimple -> "All Simple"
-    Normal (HonorTiles yakuhai) -> "Honor Tiles " ++ show yakuhai
+    Normal (HonorTiles yakuhai) -> "Honor Tiles  " ++ show yakuhai
     Normal (SelfWindTiles wind) -> "Self Wind Tiles " ++ show wind
     Normal NoPointsHand -> "No Points Hand"
     Normal TwinSequences -> "Twin Sequences"
@@ -186,7 +186,7 @@ instance Show Yaku where
     Normal (HalfFlush _) -> "Half Flush"
     Normal (CommonTerminals _) -> "Common Terminals"
     Normal (FullFlush _) -> "Full Flush"
-    Normal (Dora n) -> "Dora " ++ show n
+    Normal (Dora _) -> "Dora"
     Yakuman NagashiMangan -> "Nagashi Mangan"
     Yakuman ThirteenOrphans -> "Thirteen Orphans"
     Yakuman ThirteenOrphans13Waits -> "13-Wait Thirteen Orphans"
@@ -224,6 +224,11 @@ instance Show Fu where
     DragonPair -> "Dragon Pair"
     WindPair -> "Wind Pair"
     SelfWindPair -> "Self Wind Pair"
+
+instance Show Yakuhai where
+  show suit = case suit of
+    YakuhaiDragon d -> show d ++ " Dragon"
+    YakuhaiWind w -> show w ++ " Wind"
 
 calc :: [WinningHand] -> [Result]
 calc [] = []
@@ -326,8 +331,7 @@ getYakus w =
        in concatMap
             ( \m ->
                 ( [ honorTileToYakuhai (head (meldToTiles m))
-                    | suitOfMeld m == Honor
-                        && windOfMeld m == Just (roundWind w)
+                    | isDragonMeld m || isSelfWindMeld (selfWind w) m
                   ]
                 )
             )

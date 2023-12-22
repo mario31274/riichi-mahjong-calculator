@@ -470,6 +470,13 @@ main = hspec do
           map isFourQuads whs
             `shouldMatchList` replicate (length whs) True
 
+      describe "isFourQuads" do
+        it "should return True for 11pk2sk8mK1sK4z" do
+          let h = parse "11pk2sk8mK1sK4z"
+              whs = getWinHandsByDefault h
+          map isFourQuads whs
+            `shouldMatchList` replicate (length whs) True
+
     -- describe "2.2 Fu Related" do
     --   describe "isTwoSideWait" do
     --     it "should return True for " do

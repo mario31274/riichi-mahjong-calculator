@@ -133,11 +133,11 @@ askHand calculator =
   do
     let query =
           "Enter the hand you want to calculate:\n"
-            ++ "  1　2  3  4　5  6  7　8  9\n"
-            ++ "s 🀐　🀑　🀒　🀓　🀔　🀕　🀖　🀗　🀘\n"
-            ++ "p 🀙　🀚　🀛　🀜　🀝　🀞　🀟　🀠　🀡\n"
-            ++ "m 🀇　🀈　🀉　🀊　🀋　🀌　🀍　🀎　🀏\n"
-            ++ "z 　 🀀　🀁　🀂　🀃 🀄　🀅　🀆\n"
+            ++ "  1　2  3  4　5  6  7　8  9   Cns = Chi (Run) meld\n"
+            ++ "s 🀐　🀑　🀒　🀓　🀔　🀕　🀖　🀗　🀘   Pns = Pon (Triplet) meld\n"
+            ++ "p 🀙　🀚　🀛　🀜　🀝　🀞　🀟　🀠　🀡   Kns = Open Kan (Quad) meld\n"
+            ++ "m 🀇　🀈　🀉　🀊　🀋　🀌　🀍　🀎　🀏   kns = Closed Kan meld\n"
+            ++ "z 　 🀀　🀁　🀂　🀃　🀆　🀅 🀄\n"
             ++ "     1　2  3  4  5  6  7"
     -- ++ "  1 2 3 4 5 6 7 8 9\n"
     -- ++ "s 🀐 🀑 🀒 🀓 🀔 🀕 🀖 🀗 🀘\n"
@@ -359,7 +359,8 @@ mainLoop calculator = do
         inputBonusAgari (changePrompt promptBonusAgari calc1)
       _ -> do
         inputIppatsu calc1 >>= inputBonusAgari
-  print "You Entered:"
+  putStrLn "You Entered:"
   print $ handInput calc2
   putStr $ unlines (map show (sort (calc (toBeCalc calc2))))
+  untilQuit simplePrompt "Press Enter to calculate next hand."
   mainLoop newCalculator
