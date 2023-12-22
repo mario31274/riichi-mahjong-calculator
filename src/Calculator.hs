@@ -129,9 +129,23 @@ parseBonusAgari (c : _)
 parseBonusAgari [] = Just NoBonus
 
 askHand :: Calculator (Prompt Hand) -> IO Hand
-askHand calculator = do
-  let query = "Enter the hand you want to calculate:"
-  ask calculator query
+askHand calculator =
+  do
+    let query =
+          "Enter the hand you want to calculate:\n"
+            ++ "  1　2  3  4　5  6  7　8  9\n"
+            ++ "s 🀐　🀑　🀒　🀓　🀔　🀕　🀖　🀗　🀘\n"
+            ++ "p 🀙　🀚　🀛　🀜　🀝　🀞　🀟　🀠　🀡\n"
+            ++ "m 🀇　🀈　🀉　🀊　🀋　🀌　🀍　🀎　🀏\n"
+            ++ "z 　 🀀　🀁　🀂　🀃 🀄　🀅　🀆\n"
+            ++ "     1　2  3  4  5  6  7"
+    -- ++ "  1 2 3 4 5 6 7 8 9\n"
+    -- ++ "s 🀐 🀑 🀒 🀓 🀔 🀕 🀖 🀗 🀘\n"
+    -- ++ "p 🀙 🀚 🀛 🀜 🀝 🀞 🀟 🀠 🀡\n"
+    -- ++ "m 🀇 🀈 🀉 🀊 🀋 🀌 🀍 🀎 🀏\n"
+    -- ++ "z   🀀 🀁 🀂 🀃 🀄 🀅 🀆\n"
+    -- ++ "    1 2 3 4 5 6 7"
+    ask calculator query
 
 askRoundWind :: Calculator (Prompt Wind) -> IO Wind
 askRoundWind calculator = do
