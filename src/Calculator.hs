@@ -334,5 +334,5 @@ mainLoop calculator = do
         inputBonusAgari (changePrompt promptBonusAgari calc1)
       _ -> do
         inputIppatsu calc1 >>= inputBonusAgari
-  print $ calc (toBeCalc calc2)
+  putStr $ unlines (map show (calc (toBeCalc calc2)))
   mainLoop newCalculator

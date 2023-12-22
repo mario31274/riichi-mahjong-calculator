@@ -5,6 +5,7 @@ import Data.Ord (comparing)
 import Hand
 import Meld
 import Rule
+import Text.ParserCombinators.ReadP (get)
 import Tile
 
 data Yaku = Normal Normal | Yakuman Yakuman
@@ -108,27 +109,42 @@ data Result = Result
   deriving (Eq)
 
 instance Ord Result where
-  compare = comparing (\r -> total r + tsumoTotal r * 2)
+  compare r1 r2 = case compare (han r1) (han r2) of
+    EQ -> compare (fu r1) (fu r2)
+    other -> other
 
 instance Show Result where
-  show r =
-    "-=-=-=-=-=-=-=-=-=-Result-=-=-=-=-=-=-=-=-=-\n"
-      ++ show (handCopy r)
-      ++ "\n"
-      ++ show (han r)
-      ++ " Han / "
-      ++ show (fu r)
-      ++ " Fu\t\t"
-      ++ scoreString
-      ++ "------      Fu      ------\n"
-      ++ unlines (map (\f -> show f ++ "  " ++ show (convertToFus f)) (fus r))
-      ++ "------     Yaku     ------\n"
-      ++ unlines (map (\y -> show y ++ "  " ++ show (convertToHans y)) (yakus r))
-      ++ "-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-"
+  show r
+    | null (yakus r) =
+        "-=-=-=-=-=-=-=-=-=-Result-=-=-=-=-=-=-=-=-=-\n"
+          ++ concatMap (\m -> show m ++ " ") (handCopy r)
+          ++ "\n"
+          ++ show (han r)
+          ++ " Han / "
+          ++ show (fu r)
+          ++ " Fu\t\t\t"
+          ++ scoreString
+          ++ "--------      Fu      --------\n"
+          ++ unlines (map (\f -> show f ++ "  " ++ show (convertToFus f)) (fus r))
+          ++ "--- This hand has no Yakus ---\n"
+          ++ "-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-\n"
+    | otherwise =
+        "-=-=-=-=-=-=-=-=-=-Result-=-=-=-=-=-=-=-=-=-\n"
+          ++ show (handCopy r)
+          ++ "\n"
+          ++ show (han r)
+          ++ " Han / "
+          ++ show (fu r)
+          ++ " Fu\t\t"
+          ++ scoreString
+          ++ "------      Fu      ------\n"
+          ++ unlines (map (\f -> show f ++ "  " ++ show (convertToFus f)) (fus r))
+          ++ "------     Yaku     ------\n"
+          ++ unlines (map (\y -> show y ++ "  " ++ show (convertToHans y)) (yakus r))
+          ++ "-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-\n"
     where
-      --  "-=-=-=-=-=-=-=-=-=-Result-=-=-=-=-=-=-=-=-=-"
       scoreString
-        | tsumoTotal r == 0 = show (tsumoTotal r) ++ " pts\n"
+        | tsumoTotal r == 0 = show (total r) ++ " pts\n"
         | total r == tsumoTotal r = show (total r) ++ " pts from all\n"
         | otherwise = show (total r) ++ " / " ++ show (tsumoTotal r) ++ " pts\n"
 
@@ -201,10 +217,11 @@ calcOneWinningHand w =
     }
   where
     yakus = getYakus w
+    yakus' = yakus ++ getDora w yakus
     fus = getFus w
-    (han, point) = calcHansAndFus yakus fus
+    (han, point) = calcHansAndFus yakus' fus
     (total, tsumoTotal)
-      | any isYakumanYaku yakus = calcYakumanTotal (selfWind w == East) (isTsumo w) (han, point)
+      | any isYakumanYaku yakus' = calcYakumanTotal (selfWind w == East) (isTsumo w) (han, point)
       | otherwise = calcNormalTotal (selfWind w == East) (isTsumo w) (han, point)
 
 calcHansAndFus :: [Yaku] -> [Fu] -> (Int, Int)
@@ -266,7 +283,6 @@ getYakus w =
     ++ appendYakus isCommonTerminalsOpened [Normal (CommonTerminals True)] w
     ++ appendYakus isFullFlushClosed [Normal (FullFlush False)] w
     ++ appendYakus isFullFlushOpened [Normal (FullFlush True)] w
-    ++ doraYaku
   where
     honorTilesYakus =
       zipWith
@@ -274,9 +290,6 @@ getYakus w =
         [1 ..]
         (getHonorTiles w)
     selfWindYakus = Normal $ SelfWindTiles $ selfWind w
-    doraYaku
-      | dora w > 0 = [Normal $ Dora $ dora w]
-      | otherwise = []
     -- returns the list of honor tiles that led to the Honor Tiles Yaku
     getHonorTiles :: WinningHand -> [Yakuhai]
     getHonorTiles w =
@@ -295,6 +308,12 @@ getYakus w =
     honorTileToYakuhai t = case t of
       Wind w -> (YakuhaiWind w)
       Dragon w -> (YakuhaiDragon w)
+
+getDora :: WinningHand -> [Yaku] -> [Yaku]
+getDora w yakus
+  | null yakus = []
+  | dora w > 0 = [Normal $ Dora $ dora w]
+  | otherwise = []
 
 appendYakus :: (WinningHand -> Bool) -> [Yaku] -> WinningHand -> [Yaku]
 appendYakus cond yaku w
@@ -452,6 +471,7 @@ convertToFus fu = case fu of
 calcNormalTotal :: Bool -> Bool -> (Int, Int) -> (Int, Int)
 calcNormalTotal isDealer isTsumo (han, fu)
   | isDealer && not isTsumo = case (han, fu) of
+      (0, _) -> (0, 0)
       (1, 20) -> error "No (1, 20) possible when Ron"
       (1, 25) -> error "No (1, 25) possible when Ron"
       (1, 30) -> (1500, 0)
@@ -497,6 +517,7 @@ calcNormalTotal isDealer isTsumo (han, fu)
       (12, _) -> (36000, 0)
       _ -> (48000, 0)
   | isDealer && isTsumo = case (han, fu) of
+      (0, _) -> (0, 0)
       (1, 30) -> (500, 500)
       (1, 40) -> (700, 700)
       (1, 50) -> (800, 800)
@@ -539,6 +560,7 @@ calcNormalTotal isDealer isTsumo (han, fu)
       (12, _) -> (12000, 12000)
       _ -> (16000, 16000)
   | not isDealer && not isTsumo = case (han, fu) of
+      (0, _) -> (0, 0)
       (1, 20) -> error "No (1, 20) possible when Ron"
       (1, 25) -> error "No (1, 25) possible when Ron"
       (1, 30) -> (1000, 0)
@@ -584,6 +606,7 @@ calcNormalTotal isDealer isTsumo (han, fu)
       (12, _) -> (24000, 0)
       _ -> (48000, 0)
   | otherwise = case (han, fu) of
+      (0, _) -> (0, 0)
       (1, 30) -> (500, 300)
       (1, 40) -> (700, 400)
       (1, 50) -> (800, 400)

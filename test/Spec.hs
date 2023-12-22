@@ -3,11 +3,12 @@
 
 -- module Spec (main) where
 
-import Data.List (sort)
+import Data.List (sort, sortBy)
 import Hand
 import Meld
 import Parser
 import Rule
+import Score (calc)
 import Test.Hspec
 import Test.QuickCheck
 import Test.QuickCheck.Exception
@@ -469,36 +470,50 @@ main = hspec do
           map isFourQuads whs
             `shouldMatchList` replicate (length whs) True
 
-    describe "2.2 Fu Related" do
-      describe "isTwoSideWait" do
-        it "should return True for " do
-          pendingWith "put some test here"
-        it "should return False for " do
-          pendingWith "put some test here"
+    -- describe "2.2 Fu Related" do
+    --   describe "isTwoSideWait" do
+    --     it "should return True for " do
+    --       pendingWith "put some test here"
+    --     it "should return False for " do
+    --       pendingWith "put some test here"
 
-      describe "isOneSideWait" do
-        it "should return True for " do
-          pendingWith "put some test here"
-        it "should return False for " do
-          pendingWith "put some test here"
+    --   describe "isOneSideWait" do
+    --     it "should return True for " do
+    --       pendingWith "put some test here"
+    --     it "should return False for " do
+    --       pendingWith "put some test here"
 
-      describe "isDragonPair" do
-        it "should return True for " do
-          pendingWith "put some test here"
-        it "should return False for " do
-          pendingWith "put some test here"
+    --   describe "isDragonPair" do
+    --     it "should return True for " do
+    --       pendingWith "put some test here"
+    --     it "should return False for " do
+    --       pendingWith "put some test here"
 
-      describe "isWindPair" do
-        it "should return True for " do
-          pendingWith "put some test here"
-        it "should return False for " do
-          pendingWith "put some test here"
+    --   describe "isWindPair" do
+    --     it "should return True for " do
+    --       pendingWith "put some test here"
+    --     it "should return False for " do
+    --       pendingWith "put some test here"
 
-      describe "isSelfWindPair" do
-        it "should return True for " do
-          pendingWith "put some test here"
-        it "should return False for " do
-          pendingWith "put some test here"
+    --   describe "isSelfWindPair" do
+    --     it "should return True for " do
+    --       pendingWith "put some test here"
+    --     it "should return False for " do
+    --       pendingWith "put some test here"
+    context "3 Score" do
+      describe "Result" do
+        it "should print the right format" do
+          let h = parse "11pk2sk8mK1sK4z"
+              whs = getWinHandsByDefault h
+          putStr $ unlines (map show (calc whs))
+
+          let h = parse "456321s999m123p22z"
+              whs = getWinHandsByDefault h
+          putStr $ unlines (map show (calc whs))
+
+          let h = parse "22334455667788p"
+              whs = getWinHandsByDefault h
+          putStr $ unlines (map show (sortBy (flip compare) (calc whs)))
 
 instance Arbitrary Suit where
   arbitrary = arbitrary
@@ -516,9 +531,6 @@ instance Arbitrary Tile where
         wind <$> arbitrary,
         dragon <$> arbitrary
       ]
-
--- instance Arbitrary Opened where
---   arbitrary = arbitrary
 
 anyTile :: Gen Tile
 anyTile = arbitrary
