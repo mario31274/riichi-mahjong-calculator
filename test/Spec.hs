@@ -505,15 +505,15 @@ main = hspec do
         it "should print the right format" do
           let h = parse "11pk2sk8mK1sK4z"
               whs = getWinHandsByDefault h
-          putStr $ unlines (map show (calc whs))
+          putStr $ unlines (map show (sort (calc whs)))
 
           let h = parse "456321s999m123p22z"
               whs = getWinHandsByDefault h
-          putStr $ unlines (map show (calc whs))
+          putStr $ unlines (map show (sort (calc whs)))
 
           let h = parse "22334455667788p"
               whs = getWinHandsByDefault h
-          putStr $ unlines (map show (sortBy (flip compare) (calc whs)))
+          putStr $ unlines (map show (sort (calc whs)))
 
 instance Arbitrary Suit where
   arbitrary = arbitrary

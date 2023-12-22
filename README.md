@@ -1,10 +1,6 @@
-# Haskell-riichi-mahjong
+# Haskell-riichi-mahjong-hand-calculator
 
-A WIP Japanese Mahjong Game written in Haskell
-
-The base game is still in progress. The hand calculator is halfway finished
-and supports string parsing and meld splitting. Score calculation is on its
-way.
+A Japanese Mahjong hand score calculator written in Haskell
 
 # Usage
 
@@ -113,17 +109,6 @@ way.
     4 = UnderTheRiver 8 = BlessingOfMan
 
     -=-=-=-=-=-=-=-=-=-Result-=-=-=-=-=-=-=-=-=-
-    [(🀝,🀝),(🀚,🀛,🀜),Chi(🀚,🀛,🀜),(🀞,🀟,🀠),(🀞,🀟,🀠)]
-    2 Han / 30 Fu           2900 pts
-    ------      Fu      ------
-    Base  20
-    ClosedRon  10
-    ------     Yaku     ------
-    AllSimple  1
-    NoPointsHand  1
-    -=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-
-
-    -=-=-=-=-=-=-=-=-=-Result-=-=-=-=-=-=-=-=-=-
     [(🀠,🀠),(🀚,🀛,🀜),Chi(🀚,🀛,🀜),(🀝,🀞,🀟),(🀝,🀞,🀟)]
     1 Han / 30 Fu           1500 pts
     ------      Fu      ------
@@ -132,6 +117,17 @@ way.
     SingleWait  2
     ------     Yaku     ------
     AllSimple  1
+    -=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-
+
+    -=-=-=-=-=-=-=-=-=-Result-=-=-=-=-=-=-=-=-=-
+    [(🀝,🀝),(🀚,🀛,🀜),Chi(🀚,🀛,🀜),(🀞,🀟,🀠),(🀞,🀟,🀠)]
+    2 Han / 30 Fu           2900 pts
+    ------      Fu      ------
+    Base  20
+    ClosedRon  10
+    ------     Yaku     ------
+    AllSimple  1
+    NoPointsHand  1
     -=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-
 
     Enter the hand you want to calculate:
