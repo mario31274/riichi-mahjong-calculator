@@ -2,7 +2,7 @@ module Calculator where
 
 import Data.Char
 import Hand
-import Meld (Meld (Single))
+import Meld
 import Parser
 import Player
 import Rule
@@ -12,31 +12,18 @@ import Text.Read (readMaybe)
 import Tile
 import Wall
 
+data Calculator a = Calculator
+  { toBeCalc :: [WinningHand],
+    results :: [Result],
+    ask :: a
+  }
+
 type Prompt a = String -> IO a
 
 data Option = StartCalculator | StartGame
 
 data Move = Discard [Int]
   deriving (Show, Eq)
-
--- openPosition = 34*(3-(d+2)%4)+d*2
-data Board = Board
-  { player1 :: Player,
-    player2 :: Player,
-    player3 :: Player,
-    player4 :: Player,
-    wall :: Wall,
-    round :: Wind,
-    player1Wind :: Wind,
-    counterSticks :: Int
-  }
-  deriving (Show)
-
-data Calculator a = Calculator
-  { toBeCalc :: [WinningHand],
-    results :: [Result],
-    ask :: a
-  }
 
 sanitizeAnswer :: Prompt String -> Prompt String
 sanitizeAnswer prompt question = do
@@ -86,24 +73,36 @@ parseHand s
   | otherwise = Nothing
 
 parseWind :: String -> Maybe Wind
-parseWind s = case head [toLower c | c <- s] of
-  'e' -> Just East
-  's' -> Just South
-  'w' -> Just West
-  'n' -> Just North
-  _ -> Nothing
+parseWind (c : _)
+  | isAlpha c =
+      case toLower c of
+        'e' -> Just East
+        's' -> Just South
+        'w' -> Just West
+        'n' -> Just North
+        _ -> Nothing
+  | otherwise = Nothing
+parseWind [] = Nothing
 
 parseYesNo :: String -> Maybe Bool
-parseYesNo s = case head [toLower c | c <- s] of
-  'y' -> Just True
-  'n' -> Just False
-  _ -> Nothing
+parseYesNo (c : _)
+  | isAlpha c =
+      case toLower c of
+        'y' -> Just True
+        'n' -> Just False
+        _ -> Nothing
+  | otherwise = Nothing
+parseYesNo [] = Nothing
 
 parseRiichi :: String -> Maybe Riichi
-parseRiichi s = case head [toLower c | c <- s] of
-  's' -> Just SRiichi
-  'd' -> Just DbRiichi
-  _ -> Just NoRiichi
+parseRiichi (c : _)
+  | isAlpha c =
+      case toLower c of
+        's' -> Just SRiichi
+        'd' -> Just DbRiichi
+        _ -> Just NoRiichi
+  | otherwise = Just NoRiichi
+parseRiichi [] = Just NoRiichi
 
 parseInt :: String -> Maybe Int
 parseInt s = case readMaybe s of
@@ -111,16 +110,20 @@ parseInt s = case readMaybe s of
   Just n -> if n < 0 then Nothing else Just n
 
 parseBonusAgari :: String -> Maybe BonusAgari
-parseBonusAgari s = case head s of
-  '1' -> Just DeadWallDrawAgari
-  '2' -> Just RobbingAQuadAgari
-  '3' -> Just UnderTheSeaAgari
-  '4' -> Just UnderTheRiverAgari
-  '5' -> Just NagashiManganAgari
-  '6' -> Just BlessingOfHeavenAgari
-  '7' -> Just BlessingOfEarthAgari
-  '8' -> Just BlessingOfManAgari
-  _ -> Just NoBonus
+parseBonusAgari (c : _)
+  | isDigit c =
+      case toLower c of
+        '1' -> Just DeadWallDrawAgari
+        '2' -> Just RobbingAQuadAgari
+        '3' -> Just UnderTheSeaAgari
+        '4' -> Just UnderTheRiverAgari
+        '5' -> Just NagashiManganAgari
+        '6' -> Just BlessingOfHeavenAgari
+        '7' -> Just BlessingOfEarthAgari
+        '8' -> Just BlessingOfManAgari
+        _ -> Just NoBonus
+  | otherwise = Just NoBonus
+parseBonusAgari [] = Just NoBonus
 
 askHand :: Calculator (Prompt Hand) -> IO Hand
 askHand calculator = do
@@ -154,16 +157,12 @@ askIppatsu calculator = do
 askBonusAgari :: Calculator (Prompt BonusAgari) -> IO BonusAgari
 askBonusAgari calculator = do
   let query =
-        "Is there one of the following special win:\n"
+        "Is there one of the following rare conditions? (Default = 0)\n"
           ++ "0 = None of the below\n"
-          ++ "1 = DeadWallDraw\n"
-          ++ "2 = RobbingAQuad\n"
-          ++ "3 = UnderTheSea\n"
-          ++ "4 = UnderTheRiver\n"
-          ++ "5 = NagashiMangan\n"
-          ++ "6 = BlessingOfHeaven\n"
-          ++ "7 = BlessingOfEarth\n"
-          ++ "8 = BlessingOfMan\n"
+          ++ "1 = DeadWallDraw  5 = NagashiMangan\n"
+          ++ "2 = RobbingAQuad  6 = BlessingOfHeave\n"
+          ++ "3 = UnderTheSea   7 = BlessingOfEarth\n"
+          ++ "4 = UnderTheRiver 8 = BlessingOfMan"
   ask calculator query
 
 helpAdvice :: Prompt String -> String -> Prompt String
@@ -185,7 +184,9 @@ untilQuit :: Prompt String -> Prompt String
 untilQuit prompt question = do
   quitOrAnswer <- prompt question
   case quitOrAnswer of
-    "quit" -> exitSuccess
+    "quit" -> do
+      putStrLn "Goodbye."
+      exitSuccess
     answer -> return answer
 
 retryPrompt :: Prompt (Maybe a) -> Prompt a
@@ -197,12 +198,11 @@ retryPrompt prompt question = do
     Just answer ->
       return answer
 
-retryPromptHand :: Prompt (Maybe Hand) -> Prompt Hand
-retryPromptHand prompt question = do
+retryWithErrorMessage :: Prompt (Maybe a) -> String -> Prompt a
+retryWithErrorMessage prompt errorMessage question = do
   answer <- prompt question
   case answer of
     Nothing -> do
-      let errorMessage = "Invalid Hand. Please Check your input.\n"
       retryPrompt prompt (errorMessage ++ question)
     Just answer ->
       return answer
@@ -215,8 +215,17 @@ changeAnswerBy prompt change question = do
 parseAnswerAs :: Prompt a -> (a -> Maybe b) -> Prompt b
 parseAnswerAs prompt parse = retryPrompt (prompt `changeAnswerBy` parse)
 
-parseAnswerAsHand :: Prompt a -> (a -> Maybe Hand) -> Prompt Hand
-parseAnswerAsHand prompt parse = retryPromptHand (prompt `changeAnswerBy` parse)
+parseAnswerAsHand :: Prompt a -> (a -> Maybe b) -> Prompt b
+parseAnswerAsHand prompt parse =
+  retryWithErrorMessage (prompt `changeAnswerBy` parse) msg
+  where
+    msg = "Invalid Hand. Please Check your input.\n"
+
+parseAnswerWithMsg :: Prompt a -> (a -> Maybe b) -> Prompt b
+parseAnswerWithMsg prompt parse =
+  retryWithErrorMessage (prompt `changeAnswerBy` parse) msg
+  where
+    msg = "Sorry, I don't understand that.\n"
 
 -- ask Hand
 promptHand :: Prompt Hand
@@ -228,11 +237,11 @@ promptTsumo = untilQuit simplePrompt `parseAnswerAs` parseYesNo
 
 -- ask Round Wind
 promptRoundWind :: Prompt Wind
-promptRoundWind = untilQuit simplePrompt `parseAnswerAs` parseWind
+promptRoundWind = untilQuit simplePrompt `parseAnswerWithMsg` parseWind
 
 -- ask Self Wind
 promptSelfWind :: Prompt Wind
-promptSelfWind = untilQuit simplePrompt `parseAnswerAs` parseWind
+promptSelfWind = untilQuit simplePrompt `parseAnswerWithMsg` parseWind
 
 -- ask Dora
 promptDora :: Prompt Int
@@ -262,8 +271,8 @@ inputHand calculator = do
 inputRoundWind :: Calculator (Prompt Wind) -> IO (Calculator (Prompt Wind))
 inputRoundWind = inputWind askRoundWind promptSelfWind
 
-inputSelfWind :: Calculator (Prompt Wind) -> IO (Calculator (Prompt Int))
-inputSelfWind = inputWind askSelfWind promptDora
+inputSelfWind :: Calculator (Prompt Wind) -> IO (Calculator (Prompt Bool))
+inputSelfWind = inputWind askSelfWind promptTsumo
 
 inputWind :: (Calculator (Prompt Wind) -> IO Wind) -> Prompt a -> Calculator (Prompt Wind) -> IO (Calculator (Prompt a))
 inputWind this next calculator = do
@@ -271,18 +280,59 @@ inputWind this next calculator = do
   let whs' = map (\w -> w {roundWind = wind}) (toBeCalc calculator)
   return calculator {toBeCalc = whs', ask = next}
 
+inputTsumo :: Calculator (Prompt Bool) -> IO (Calculator (Prompt Int))
+inputTsumo calculator = do
+  tsumo <- askTsumo calculator
+  let whs' = map (\w -> w {isTsumo = tsumo}) (toBeCalc calculator)
+  return calculator {toBeCalc = whs', ask = promptDora}
+
 inputDora :: Calculator (Prompt Int) -> IO (Calculator (Prompt Riichi))
 inputDora calculator = do
   dora <- askDora calculator
   let whs' = map (\w -> w {dora = dora}) (toBeCalc calculator)
   return calculator {toBeCalc = whs', ask = promptRiichi}
 
+inputRiichi :: Calculator (Prompt Riichi) -> IO (Calculator (Prompt Bool))
+inputRiichi calculator = do
+  riichi <- askRiichi calculator
+  let whs' = map (\w -> w {riichiStatus = riichi}) (toBeCalc calculator)
+  return calculator {toBeCalc = whs', ask = promptIppatsu}
+
+inputIppatsu :: Calculator (Prompt Bool) -> IO (Calculator (Prompt BonusAgari))
+inputIppatsu calculator = do
+  ippatsu <- askIppatsu calculator
+  let whs' = map (\w -> w {isIppatsu = ippatsu}) (toBeCalc calculator)
+  return calculator {toBeCalc = whs', ask = promptBonusAgari}
+
+changePrompt :: Prompt b -> Calculator (Prompt a) -> Calculator (Prompt b)
+changePrompt newPrompt calculator = calculator {ask = newPrompt}
+
+inputBonusAgari :: Calculator (Prompt BonusAgari) -> IO (Calculator (Prompt BonusAgari))
+inputBonusAgari calculator = do
+  bonus <- askBonusAgari calculator
+  let whs' = map (\w -> w {bonusAragi = bonus}) (toBeCalc calculator)
+  return calculator {toBeCalc = whs'}
+
+-- inputAtoB :: (Calculator (Prompt a) -> IO a) -> Prompt b -> Calculator (Prompt a) -> IO (Calculator (Prompt b))
+-- inputAtoB this next calculator = do
+--   answer <- this calculator
+--   let whs' = map (\w -> w {XXX = bonus}) (toBeCalc calculator)
+--   return calculator {toBeCalc = whs', ask = next}
+
 mainLoop :: Calculator (Prompt Hand) -> IO a
 mainLoop calculator = do
-  calc' <-
-    inputRoundWind
-      =<< inputHand calculator
-  print $ toBeCalc calc'
-  let results = calc (toBeCalc calc')
-  print $ results
+  calc1 <-
+    inputHand calculator
+      >>= inputRoundWind
+      >>= inputSelfWind
+      >>= inputTsumo
+      >>= inputDora
+      >>= inputRiichi
+  calc2 <-
+    case riichiStatus (head (toBeCalc calc1)) of
+      NoRiichi -> do
+        inputBonusAgari (changePrompt promptBonusAgari calc1)
+      _ -> do
+        inputIppatsu calc1 >>= inputBonusAgari
+  print $ calc (toBeCalc calc2)
   mainLoop newCalculator

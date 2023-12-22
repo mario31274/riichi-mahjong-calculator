@@ -1,5 +1,6 @@
 module Score where
 
+import Data.List
 import Data.Ord (comparing)
 import Hand
 import Meld
@@ -7,7 +8,7 @@ import Rule
 import Tile
 
 data Yaku = Normal Normal | Yakuman Yakuman
-  deriving (Show, Ord, Eq)
+  deriving (Ord, Eq)
 
 data Yakuhai = YakuhaiWind Wind | YakuhaiDragon Dragon
   deriving (Show, Ord, Eq)
@@ -104,13 +105,80 @@ data Result = Result
     -- | A copy of Hand for printing
     handCopy :: [Meld]
   }
-  deriving (Show, Eq)
+  deriving (Eq)
 
 instance Ord Result where
   compare = comparing (\r -> total r + tsumoTotal r * 2)
 
--- instance Show Result where
---   show = undefined
+instance Show Result where
+  show r =
+    "-=-=-=-=-=-=-=-=-=-Result-=-=-=-=-=-=-=-=-=-\n"
+      ++ show (handCopy r)
+      ++ "\n"
+      ++ show (han r)
+      ++ " Han / "
+      ++ show (fu r)
+      ++ " Fu\t\t"
+      ++ scoreString
+      ++ "------      Fu      ------\n"
+      ++ unlines (map (\f -> show f ++ "  " ++ show (convertToFus f)) (fus r))
+      ++ "------     Yaku     ------\n"
+      ++ unlines (map (\y -> show y ++ "  " ++ show (convertToHans y)) (yakus r))
+      ++ "-=-=-=-=-=-=-=-=-=-=-==-=-=-=-=-=-=-=-=-=-=-"
+    where
+      --  "-=-=-=-=-=-=-=-=-=-Result-=-=-=-=-=-=-=-=-=-"
+      scoreString
+        | tsumoTotal r == 0 = show (tsumoTotal r) ++ " pts\n"
+        | total r == tsumoTotal r = show (total r) ++ " pts from all\n"
+        | otherwise = show (total r) ++ " / " ++ show (tsumoTotal r) ++ " pts\n"
+
+instance Show Yaku where
+  show y = case y of
+    Normal Riichi -> "Riichi"
+    Normal Ippatsu -> "Ippatsu"
+    Normal ClosedTsumo -> "ClosedTsumo"
+    Normal AllSimple -> "AllSimple"
+    Normal (HonorTiles yakuhai) -> "HonorTiles " ++ show yakuhai
+    Normal (SelfWindTiles wind) -> "SelfWindTiles " ++ show wind
+    Normal NoPointsHand -> "NoPointsHand"
+    Normal TwinSequences -> "TwinSequences"
+    Normal DeadWallDraw -> "DeadWallDraw"
+    Normal RobbingAQuad -> "RobbingAQuad"
+    Normal UnderTheSea -> "UnderTheSea"
+    Normal UnderTheRiver -> "UnderTheRiver"
+    Normal DoubleRiichi -> "DoubleRiichi"
+    Normal SevenPairs -> "SevenPairs"
+    Normal AllTriplets -> "AllTriplets"
+    Normal ThreeClosedTriplets -> "ThreeClosedTriplets"
+    Normal ThreeQuads -> "ThreeQuads"
+    Normal ThreeMixedTriplets -> "ThreeMixedTriplets"
+    Normal AllTerminalsAndHonors -> "AllTerminalsAndHonors"
+    Normal LittleThreeDragons -> "LittleThreeDragons"
+    Normal (ThreeMixedSequences _) -> "ThreeMixedSequences"
+    Normal (FullStraight _) -> "FullStraight"
+    Normal (CommonEnds _) -> "CommonEnds"
+    Normal DoubleTwinSequences -> "DoubleTwinSequences"
+    Normal (HalfFlush _) -> "HalfFlush"
+    Normal (CommonTerminals _) -> "CommonTerminals"
+    Normal (FullFlush _) -> "FullFlush"
+    Normal (Dora n) -> "Dora " ++ show n
+    Yakuman NagashiMangan -> "NagashiMangan"
+    Yakuman ThirteenOrphans -> "ThirteenOrphans"
+    Yakuman ThirteenOrphans13Waits -> "ThirteenOrphans13Waits"
+    Yakuman FourClosedTriplets -> "FourClosedTriplets"
+    Yakuman FourClosedTripletsSingleWait -> "FourClosedTripletsSingleWait"
+    Yakuman BigThreeDragons -> "BigThreeDragons"
+    Yakuman LittleFourWinds -> "LittleFourWinds"
+    Yakuman BigFourWinds -> "BigFourWinds"
+    Yakuman AllHonors -> "AllHonors"
+    Yakuman AllTerminals -> "AllTerminals"
+    Yakuman AllGreen -> "AllGreen"
+    Yakuman NineGates -> "NineGates"
+    Yakuman NineGates9Waits -> "NineGates9Waits"
+    Yakuman FourQuads -> "FourQuads"
+    Yakuman BlessingOfHeaven -> "BlessingOfHeaven"
+    Yakuman BlessingOfEarth -> "BlessingOfEarth"
+    Yakuman BlessingOfMan -> "BlessingOfMan"
 
 calc :: [WinningHand] -> [Result]
 calc [] = []
