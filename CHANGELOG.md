@@ -15,4 +15,7 @@
   remaining tiles are all terminal or honor tiles. Added another check
   function that prevents any list of melds other than five, seven, or
   13 melds long being treated as a valid winning hand.
-  
+
+## 0.2.0.0 -- 2023-12-21 11:03 pm
+
+* Calculator with prompt completed.

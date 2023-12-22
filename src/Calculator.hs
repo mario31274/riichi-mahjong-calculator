@@ -148,7 +148,7 @@ askDora calculator = do
 
 askRiichi :: Calculator (Prompt Riichi) -> IO Riichi
 askRiichi calculator = do
-  ask calculator "Is Riichi? (s = Single Riichi, d = Double Riichi)?"
+  ask calculator "Is Riichi? (s = Single Riichi, d = Double Riichi, Default=No)?"
 
 askIppatsu :: Calculator (Prompt Bool) -> IO Bool
 askIppatsu calculator = do
