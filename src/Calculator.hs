@@ -283,7 +283,6 @@ inputHand :: Calculator (Prompt Hand) -> IO (Calculator (Prompt Wind))
 inputHand calculator = do
   h <- askHand calculator
   let whs = getWinHandsByDefault h
-  print whs
   return calculator {handInput = h, toBeCalc = whs, ask = promptRoundWind}
 
 inputRoundWind :: Calculator (Prompt Wind) -> IO (Calculator (Prompt Wind))

@@ -97,7 +97,7 @@ isSevenPairs w = length (uniq (hand w)) == 7
 -- No-points hand  (closed or opened)
 isNoPointsHand :: WinningHand -> Bool
 isNoPointsHand w =
-  let threes = filter3TileMelds $ hand w
+  let threes = filterNotPairMelds $ hand w
    in all isRun threes
         && isTwoSideWait w
 
@@ -105,7 +105,7 @@ isNoPointsHand w =
 isTwinSequences :: WinningHand -> Bool
 isTwinSequences w =
   let ms = hand w
-      threes = filter3TileMelds ms
+      threes = filterNotPairMelds ms
    in isClosedHand w
         && length ms - length (nub ms) == 1
 
@@ -113,7 +113,7 @@ isTwinSequences w =
 isDoubleTwinSequences :: WinningHand -> Bool
 isDoubleTwinSequences w =
   let ms = hand w
-      threes = filter3TileMelds ms
+      threes = filterNotPairMelds ms
    in isClosedHand w
         && length ms - length (nub ms) == 2
 
@@ -143,7 +143,7 @@ isThreeMixedSequencesOpened w = not (isClosedHand w) && isThreeMixedSequences w
 -- Full Straight
 isFullStraight :: WinningHand -> Bool
 isFullStraight w = do
-  let threes = filter3TileMelds $ hand w
+  let threes = filterNotPairMelds $ hand w
   case find (\m -> numOfMeld m == Just 1) threes of
     Just m ->
       case find (\m' -> numOfMeld m' == Just 4 && suitOfMeld m == suitOfMeld m') threes of
@@ -163,7 +163,7 @@ isFullStraightOpened w = not (isClosedHand w) && isFullStraight w
 -- All Triplets (not Four)
 isAllTripletsYaku :: WinningHand -> Bool
 isAllTripletsYaku w =
-  let threes = filter3TileMelds $ hand w
+  let threes = filterNotPairMelds $ hand w
    in not (null threes)
         && all isTripletOrQuad threes
         && not (isFourClosedTriplets w)
@@ -249,7 +249,7 @@ isCommonTerminalsOpened w = not (isClosedHand w) && isCommonTerminals w
 -- All Terminals and Honors
 isAllTerminalsAndHonors :: WinningHand -> Bool
 isAllTerminalsAndHonors w =
-  (all isTripletOrQuad (filter3TileMelds (hand w)) || all isPair (hand w))
+  (all isTripletOrQuad (filterNotPairMelds (hand w)) || all isPair (hand w))
     && all isTerminalOrHonorMeld (hand w)
 
 -- Little Three Dragons
