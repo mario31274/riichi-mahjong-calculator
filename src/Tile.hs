@@ -109,9 +109,7 @@ isWindTile t = case t of
   _ -> False
 
 isXWindTile :: Wind -> Tile -> Bool
-isXWindTile w t = case t of
-  Wind w -> True
-  _ -> False
+isXWindTile w t = t == Wind w
 
 isGreenTile :: Tile -> Bool
 isGreenTile t = case t of

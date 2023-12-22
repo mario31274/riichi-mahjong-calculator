@@ -45,6 +45,10 @@ main = hspec do
       it "should be Honor tiles" do
         property $ forAll anyDragon $ \dragon -> do
           suitOf dragon `shouldBe` Honor
+    describe "isXWindTile" do
+      it "should return the right answer" do
+        isXWindTile East (Wind West) `shouldBe` False
+        isXWindTile South (Wind South) `shouldBe` True
 
   context "1.2 Melds" do
     describe "sequentialMeld" do

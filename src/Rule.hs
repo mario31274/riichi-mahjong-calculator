@@ -172,11 +172,18 @@ isAllTripletsYaku w =
 isThreeClosedTriplets :: WinningHand -> Bool
 isThreeClosedTriplets w =
   let triplets = filterTripletOrQuadMelds $ hand w
-   in (length triplets == 3 && all isClosedMeld triplets)
-        || ( length triplets == 4
-               && not (isPair (winningMeld w))
-               && not (isTsumo w)
+   in all isClosedMeld triplets
+        && ( ( length triplets == 3
+                 && logicGroup
+             )
+               || ( length triplets == 4
+                      && not logicGroup
+                  )
            )
+  where
+    logicGroup =
+      isPair (winningMeld w)
+        || (isTriplet (winningMeld w) && isTsumo w)
 
 -- Three Mixed Triplets
 isThreeMixedTriplets :: WinningHand -> Bool
@@ -208,13 +215,13 @@ isAllSimple w = all isNonTerminalMeld (hand w)
 isSelfWindTiles :: WinningHand -> Bool
 isSelfWindTiles w =
   let melds = filterTripletOrQuadMelds $ hand w
-   in any (isSelfWindMeld (selfWind w)) melds
+   in any (isXWindMeld (selfWind w)) melds
 
 -- Honor Tiles
 isHonorTiles :: WinningHand -> Bool
 isHonorTiles w =
-  let quads = filterTripletOrQuadMelds $ hand w
-   in any isHonorMeld quads
+  let melds = filterTripletOrQuadMelds $ hand w
+   in any (\m -> isHonorMeld m || isXWindMeld (roundWind w) m) melds
 
 -- Common Ends
 isCommonEnds :: WinningHand -> Bool

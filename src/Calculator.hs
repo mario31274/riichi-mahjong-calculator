@@ -283,6 +283,7 @@ inputHand :: Calculator (Prompt Hand) -> IO (Calculator (Prompt Wind))
 inputHand calculator = do
   h <- askHand calculator
   let whs = getWinHandsByDefault h
+  print whs
   return calculator {handInput = h, toBeCalc = whs, ask = promptRoundWind}
 
 inputRoundWind :: Calculator (Prompt Wind) -> IO (Calculator (Prompt Wind))
@@ -299,11 +300,11 @@ inputSelfWind calculator = do
   let whs' = map (\w -> w {selfWind = wind}) (toBeCalc calculator)
   return calculator {toBeCalc = whs', ask = promptTsumo}
 
-inputWind :: (Calculator (Prompt Wind) -> IO Wind) -> Prompt a -> Calculator (Prompt Wind) -> IO (Calculator (Prompt a))
-inputWind this next calculator = do
-  wind <- this calculator
-  let whs' = map (\w -> w {roundWind = wind}) (toBeCalc calculator)
-  return calculator {toBeCalc = whs', ask = next}
+-- inputWind :: (Calculator (Prompt Wind) -> IO Wind) -> Prompt a -> Calculator (Prompt Wind) -> IO (Calculator (Prompt a))
+-- inputWind this next calculator = do
+--   wind <- this calculator
+--   let whs' = map (\w -> w {roundWind = wind}) (toBeCalc calculator)
+--   return calculator {toBeCalc = whs', ask = next}
 
 inputTsumo :: Calculator (Prompt Bool) -> IO (Calculator (Prompt Int))
 inputTsumo calculator = do

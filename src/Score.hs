@@ -164,7 +164,7 @@ instance Show Yaku where
     Normal ClosedTsumo -> "Closed Tsumo"
     Normal AllSimple -> "All Simple"
     Normal (HonorTiles yakuhai) -> "Honor Tiles  " ++ show yakuhai
-    Normal (SelfWindTiles wind) -> "Self Wind Tiles " ++ show wind
+    Normal (SelfWindTiles wind) -> "Self Wind Tiles  " ++ show wind
     Normal NoPointsHand -> "No Points Hand"
     Normal TwinSequences -> "Twin Sequences"
     Normal DeadWallDraw -> "Dead Wall Draw"
@@ -174,7 +174,7 @@ instance Show Yaku where
     Normal DoubleRiichi -> "Double Riichi"
     Normal SevenPairs -> "Seven Pairs"
     Normal AllTriplets -> "All Triplets"
-    Normal ThreeClosedTriplets -> "Three Closed Triplets"
+    Normal ThreeClosedTriplets -> "Three Concealed Triplets"
     Normal ThreeQuads -> "Three Quads"
     Normal ThreeMixedTriplets -> "Three Mixed Triplets"
     Normal AllTerminalsAndHonors -> "All Terminals And Honors"
@@ -227,8 +227,8 @@ instance Show Fu where
 
 instance Show Yakuhai where
   show suit = case suit of
-    YakuhaiDragon d -> show d ++ " Dragon"
-    YakuhaiWind w -> show w ++ " Wind"
+    YakuhaiDragon d -> show d
+    YakuhaiWind w -> show w
 
 calc :: [WinningHand] -> [Result]
 calc [] = []
@@ -331,7 +331,7 @@ getYakus w =
        in concatMap
             ( \m ->
                 ( [ honorTileToYakuhai (head (meldToTiles m))
-                    | isDragonMeld m || isSelfWindMeld (selfWind w) m
+                    | isDragonMeld m || isXWindMeld (roundWind w) m
                   ]
                 )
             )

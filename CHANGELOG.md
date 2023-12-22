@@ -28,4 +28,6 @@
 * Bug Fixed: isValidWinningHand: 7 meld long hand should consists of
   pairs only
 * Bug Fixed: Single Wait Fu's being adding for 2 times
+* Bug Fixed: Wind tiles not being compared correctly
+* Bug Fixed: Three Concealed Triplets condition
 * Yakuman hands shouldn't show fu's anymore because they are irrelevant
