@@ -5,7 +5,6 @@ import Hand
 import Meld
 import Tile
 
--- sanitize the input (Ns=Sou, Np=Pin, Nm=Man, Nz=Honor, CNx=Chi Meld, PNx=Pon Meld, KNx=Kan Meld, kNx=Closed Kan Meld)
 parse :: String -> Hand
 parse s =
   let (tss, mss) = groupTileAndMeldStrings s

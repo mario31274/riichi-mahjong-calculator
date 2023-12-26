@@ -61,6 +61,7 @@ trimTrailingSpaces s
         Just (w, c, r) -> w ++ [c] ++ trimTrailingSpaces r
         Nothing -> ""
 
+-- sanitize the input (Ns=Sou, Np=Pin, Nm=Man, Nz=Honor, CNx=Chi Meld, PNx=Pon Meld, KNx=Kan Meld, kNx=Closed Kan Meld)
 sanitizeInputForTiles :: String -> String
 sanitizeInputForTiles = filter (`elem` ['1' .. '9'] ++ ['s', 'p', 'm', 'z', 'C', 'P', 'K', 'k'])
 
@@ -286,14 +287,12 @@ inputHand calculator = do
   return calculator {handInput = h, toBeCalc = whs, ask = promptRoundWind}
 
 inputRoundWind :: Calculator (Prompt Wind) -> IO (Calculator (Prompt Wind))
--- inputRoundWind = inputWind askRoundWind promptSelfWind
 inputRoundWind calculator = do
   wind <- askRoundWind calculator
   let whs' = map (\w -> w {roundWind = wind}) (toBeCalc calculator)
   return calculator {toBeCalc = whs', ask = promptSelfWind}
 
 inputSelfWind :: Calculator (Prompt Wind) -> IO (Calculator (Prompt Bool))
--- inputSelfWind = inputWind askSelfWind promptTsumo
 inputSelfWind calculator = do
   wind <- askSelfWind calculator
   let whs' = map (\w -> w {selfWind = wind}) (toBeCalc calculator)
